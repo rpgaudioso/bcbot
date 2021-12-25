@@ -7,11 +7,15 @@ import pygetwindow
 # ---------------------------------------------------
 WAIT_SEC = 1
 SCROLL_DELAY = .1
-MOVE_SEC = .4
+MOVE_SEC = .2
 HERO_STRIP_HEIGHT = 44
 HERO_STRIP_DIVIDER = 6
 HERO_FIRST_POS_Y = -260
 HERO_TOTAL_HEIGHT = 255
+TOTAL_HEROS = 15
+
+heros_working = 0
+actualPos = 0
 
 # ---------------------------------------------------
 # Methods
@@ -48,13 +52,15 @@ def openHeroMenu():
 
 
 def scrolDownHeroMenu():
-    mouse.move(-100,-46,False, MOVE_SEC)
+    mouse.move(-150,-46,False, MOVE_SEC)
     sleep(WAIT_SEC)
     mouse.drag(0,0,0,-200,False, MOVE_SEC)
     sleep(WAIT_SEC)
     mouse.move(0,200,False, MOVE_SEC)
     sleep(WAIT_SEC)
     mouse.drag(0,0,0,-200,False, MOVE_SEC)
+    sleep(WAIT_SEC)
+    mouse.move(0,192,False, MOVE_SEC)
     sleep(WAIT_SEC)
 
 
@@ -79,10 +85,13 @@ def selecHeroes(screen=1, qt=15):
     #     sleep(WAIT_SEC)
     #     mouse.click()
 
-def scroll(qtd=1, dir=-1):
+def selectHero(qtd=1, dir=-1):
     hero = 1
 
-    for x in range(qtd):
+    mouse.move(-150, HERO_FIRST_POS_Y, False, MOVE_SEC)
+    sleep(WAIT_SEC)
+
+    for x in range(qtd-1):
         if(x < 10):
             print("scroll")
             for y in range(4):
@@ -91,50 +100,108 @@ def scroll(qtd=1, dir=-1):
             sleep(SCROLL_DELAY)
         else:
             if(x == 10):
-               sleep(WAIT_SEC) 
+               sleep(WAIT_SEC)
                mouse.move(0, 16, False)
 
             print("move mouse")
-            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT)*-dir,False, MOVE_SEC )
-            sleep(WAIT_SEC)
+            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT)*-dir,False, SCROLL_DELAY )
+            sleep(SCROLL_DELAY)
+
+
+
+
+
+def prepareToWork():
+    mouse.move(100, 0, False, MOVE_SEC)
+    sleep(WAIT_SEC)
+
+
+def work():
+    mouse.click()
+    sleep(WAIT_SEC)
+    global heros_working
+    heros_working += 1 
+    print("A hero goes to work. Total working: {}".format(heros_working))
+
+
+def prepareToRest():
+    mouse.move(140, 0, False, MOVE_SEC)
+
+
+def rest():
+    mouse.click()
+    sleep(WAIT_SEC)
+    global heros_working
+    heros_working -= 1 
+    print(heros_working)
+
+
+def restAll(total=15):
+    mouse.move(140, 0, False, MOVE_SEC)
+    for x in range(total):
+        mouse.click()
+        sleep(WAIT_SEC)
+    mouse.move(-140, 0, False, MOVE_SEC)
+    
+
+def selectHeroDtU(delta):
+    print("Select hero - delta: {}".format(delta))
+    global actualPos
+    delta2 = 0
+    if(delta > 10):
+        delta2 = delta -10
+        delta = 10
+
+    print("scroll up for {} times".format(delta))
+    for x in range(delta):
+        for y in range(4):
+            mouse.wheel(1)
+            sleep(SCROLL_DELAY)
+        sleep(WAIT_SEC)
+        actualPos += 1
+    
+    if(delta2 != 0):
+        mouse.move(0, -16, False)
+        sleep(WAIT_SEC)
+        print("move mouse up for {} times".format(delta2))
+        for x in range(delta2):
+            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT)*-1,False, SCROLL_DELAY )
+            sleep(SCROLL_DELAY)
+            actualPos += 1
+
+    print("actualPos: {}".format(actualPos))
+
+
+def workList():
+    delta = 0
+
+    print("Heros to work: {}".format(HEROS_ORDER))
+
+    for herosPos in HEROS_ORDER:
+        global actualPos
+        print("Finding hero pos: {}".format(herosPos))
+        delta = TOTAL_HEROS-herosPos-actualPos-heros_working
+        selectHeroDtU(delta)
+        work()
 
 # ---------------------------------------------------
 # Main
 # ---------------------------------------------------
 # screenSetup()
-# findHeroMenu(1)
-# openHeroMenu()
-# scrolDownHeroMenu()
-# selecHeroes(1,2)
-# closeHeroMenu(1)
-
-
-# findHeroMenu(3)
-# openHeroMenu()
-# scrolDownHeroMenu()
-# selecHeroes(3,2)
-# closeHeroMenu(3)
-
-
-findHeroMenu(1)
-openHeroMenu()
 
 HEROS_WORKING = 0
-HEROS_ORDER = [3,5,1,7,9,2]
+HEROS_ORDER = [1,5,10,15,14,12]
+HEROS_ORDER.sort(reverse=True)
 
-mouse.move(-150, HERO_FIRST_POS_Y, False, MOVE_SEC)
-sleep(WAIT_SEC)
+findHeroMenu(4)
+openHeroMenu()
+scrolDownHeroMenu()
+prepareToWork()
+workList()
 
-scroll(14);
-# scroll(1,1);
-
-# mouse.move(0, HERO_STRIP_HEIGHT, False, MOVE_SEC)
-
-
-# HERO_STRIP_HEIGHT = 44
-# HERO_STRIP_DIVIDER = 6
-
-sleep(WAIT_SEC)
-# closeHeroMenu(1)
-
-
+# 1  539 sapo
+# 5  543 kina
+# 10 548 ninja
+# 12 936 vamp
+# 14 938 doge
+# 15 939 chapeu
