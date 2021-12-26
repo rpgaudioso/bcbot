@@ -24,7 +24,7 @@ TOTAL_SCREENS = 4
 
 heroes_working = 0
 actualPos = 0
-keepAliveCounter = 1
+keepAliveCounter = 9
 
 # ---------------------------------------------------
 # Methods
@@ -197,13 +197,13 @@ def keepAlive():
     
     for screen in range(TOTAL_SCREENS):
         screen+=1
+        handleNewMap()
 
         if (keepAliveCounter % FARM_CICLE == 0):
             logging.info("Starting farm in screen: {}".format(screen))
             startFarm(screen)
         else:
             logging.info("Keeping alive screen: {}".format(screen))
-            handleNewMap()
             goToMainMenu(screen)
             goToTreasureHunt(screen)
 
@@ -211,7 +211,7 @@ def keepAlive():
         keepAliveCounter = 0
 
 
-    nextTick = datetime.datetime.now() + datetime.timedelta(seconds = KEEP_ALIVE_SEC).strftime("%b %d %Y %H:%M:%S")
+    nextTick = (datetime.datetime.now() + datetime.timedelta(seconds = KEEP_ALIVE_SEC)).strftime("%b %d %Y %H:%M:%S")
 
     logging.info("Keep alive ending .. See you again in {}".format(nextTick))
     sleep(KEEP_ALIVE_SEC)
