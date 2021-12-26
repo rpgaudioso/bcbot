@@ -6,6 +6,7 @@ import pygetwindow
 # Properties
 # ---------------------------------------------------
 WAIT_SEC = 1
+KEEP_ALIVE_SEC = 20
 SCROLL_DELAY = .1
 MOVE_SEC = .2
 HERO_STRIP_HEIGHT = 44
@@ -13,9 +14,12 @@ HERO_STRIP_DIVIDER = 6
 HERO_FIRST_POS_Y = -260
 HERO_TOTAL_HEIGHT = 255
 TOTAL_HEROS = 15
+TOTAL_SCREENS = 4
+
 
 heroes_working = 0
 actualPos = 0
+keepAliveCounter = 0
 
 # ---------------------------------------------------
 # Methods
@@ -64,7 +68,7 @@ def scrolDownHeroesMenu():
     sleep(WAIT_SEC)
 
 
-def closeHeroesMenu(screen=1):
+def closeHeroesMenu(screen):
     findHeroesMenu(screen)
     mouse.move(40,-320,False, MOVE_SEC)
     sleep(WAIT_SEC)
@@ -99,7 +103,7 @@ def putHeroesToRest(total=15):
     for x in range(total):
         mouse.click()
         sleep(WAIT_SEC)
-        
+
     heroes_working = 0
     mouse.move(15, -HERO_FIRST_POS_Y, False, MOVE_SEC)
     print("Put heroes to rest - done!")
@@ -155,6 +159,7 @@ def startTeamWork():
         doWorkAction()
 
 
+
 def startFarm(screen):
     findHeroesMenu(screen)
     openHeroesMenu()
@@ -162,15 +167,35 @@ def startFarm(screen):
     scrolDownHeroesMenu()
     prepareToWork()
     startTeamWork()
-   
+
+
+def keepAlive():
+    global keepAliveCounter
+    print("Keep alive running: {}".format(keepAliveCounter))
+    keepAliveCounter += 1
+
+    for screen in range(TOTAL_SCREENS):
+        screen+=1
+        findHeroesMenu(screen)
+        openHeroesMenu()
+        closeHeroesMenu(screen)
+        
+        if (keepAliveCounter%5 == 0):
+            print('iniciando farm')
+            # startFarm(screen)
+
+    if (keepAliveCounter%5 == 0):
+        keepAliveCounter = 0
+
+    print("Keep alive ending .. See you agin in {} seconds!".format(KEEP_ALIVE_SEC))
+    sleep(KEEP_ALIVE_SEC)
+    keepAlive()
 
 # ---------------------------------------------------
 # Main
 # ---------------------------------------------------
 def main():
     # screenSetup()
-    # aqui vai ter um for para rodar todas as 4 telas
-    startFarm(1)
-
+    keepAlive()
 
 main()
