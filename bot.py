@@ -1,12 +1,14 @@
+from re import S
 from time import sleep
 import mouse
 import pygetwindow
+import logging
 
 # ---------------------------------------------------
 # Properties
 # ---------------------------------------------------
-WAIT_SEC = 1
-KEEP_ALIVE_SEC = 20
+WAIT_SEC = 1.5
+KEEP_ALIVE_SEC = 300
 SCROLL_DELAY = .1
 MOVE_SEC = .2
 HERO_STRIP_HEIGHT = 44
@@ -19,33 +21,33 @@ TOTAL_SCREENS = 4
 
 heroes_working = 0
 actualPos = 0
-keepAliveCounter = 0
+keepAliveCounter = 4
 
 # ---------------------------------------------------
 # Methods
 # ---------------------------------------------------
 def screenSetup():
-    for x in range(4):
-        win = pygetwindow.getWindowsWithTitle('Bombcrypto - Google Chrome')[x]
+    for screen in range(4):
+        win = pygetwindow.getWindowsWithTitle('Bombcrypto - Google Chrome')[screen]
         win.size = (720, 540)
-        if (x == 0):
+        if (screen == 0):
             win.moveTo(0,0)
-        elif (x == 1):
+        elif (screen == 1):
             win.moveTo(700,0)
-        elif (x == 2):
+        elif (screen == 2):
             win.moveTo(0,520)
-        elif (x == 3):
+        elif (screen == 3):
             win.moveTo(700,520)
         
 
-def findHeroesMenu(x=1):
-    if (x == 1):
+def findHeroesMenu(screen):
+    if (screen == 1):
         mouse.move(365, 480, True, MOVE_SEC)
-    elif (x == 2):
+    elif (screen == 2):
         mouse.move(1065, 480, True, MOVE_SEC)
-    elif (x == 3):
+    elif (screen == 3):
         mouse.move(365, 1000, True, MOVE_SEC)
-    elif (x == 4):
+    elif (screen == 4):
         mouse.move(1065, 1000, True, MOVE_SEC)
 
 
@@ -90,13 +92,13 @@ def doWorkAction():
     sleep(WAIT_SEC)
     global heroes_working
     heroes_working += 1 
-    print("A hero goes to work. Total working heroes: {}".format(heroes_working))
+    logging.debug("A hero goes to work. Total working heroes: {}".format(heroes_working))
 
 
 def putHeroesToRest(total=15):
     global heroes_working
 
-    print("Put heroes to rest...")
+    logging.info("Put heroes to rest...")
     mouse.move(-15, HERO_FIRST_POS_Y, False, MOVE_SEC)
     sleep(WAIT_SEC)
 
@@ -106,18 +108,18 @@ def putHeroesToRest(total=15):
 
     heroes_working = 0
     mouse.move(15, -HERO_FIRST_POS_Y, False, MOVE_SEC)
-    print("Put heroes to rest - done!")
+    logging.info("Put heroes to rest - done!")
 
 
 def selectHero(delta):
-    print("Select hero - delta: {}".format(delta))
+    logging.debug("Select hero - delta: {}".format(delta))
     global actualPos
     delta2 = 0
     if(delta > 10):
         delta2 = delta -10
         delta = 10
 
-    print("scroll up for {} times".format(delta))
+    logging.debug("scroll up for {} times".format(delta))
     for x in range(delta):
         for y in range(4):
             mouse.wheel(1)
@@ -128,66 +130,75 @@ def selectHero(delta):
     if(delta2 != 0):
         mouse.move(0, -16, False)
         sleep(WAIT_SEC)
-        print("move mouse up for {} times".format(delta2))
+        logging.debug("move mouse up for {} times".format(delta2))
         for x in range(delta2):
             mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT)*-1,False, SCROLL_DELAY )
             sleep(SCROLL_DELAY)
             actualPos += 1
 
-    print("actualPos: {}".format(actualPos))
+    logging.debug("actualPos: {}".format(actualPos))
 
 
-def getHeroesPosToWork():
-    heros =  [1,5,15,11,14,9]
-    # heros =  [4]
-    heros.sort(reverse=True)
+def getHeroesPosToWork(screen):
+    if (screen == 1):
+        heroes = [1,2,3,4,5,6,8,9,10,11,12,14,15]
+    elif (screen == 2):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    elif (screen == 3):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    elif (screen == 4):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+        
+    heroes.sort(reverse=True)
+    return heroes
 
-    return heros
 
-def startTeamWork():
+def startTeamWork(screen):
     global actualPos
     actualPos = 0
     delta = 0
 
-    heroesPosToWork = getHeroesPosToWork()
-    print("Heroes going to work by positions: {}".format(heroesPosToWork))
+    heroesPosToWork = getHeroesPosToWork(screen)
+    logging.info("Heroes going to work by positions: {}".format(heroesPosToWork))
 
-    for herosPos in heroesPosToWork:
-        print("Finding hero in position: {}".format(herosPos))
-        delta = TOTAL_HEROS-herosPos-actualPos-heroes_working
+    for heroesPos in heroesPosToWork:
+        logging.debug("Finding hero in position: {}".format(heroesPos))
+        delta = TOTAL_HEROS-heroesPos-actualPos-heroes_working
         selectHero(delta)
         doWorkAction()
-
 
 
 def startFarm(screen):
     findHeroesMenu(screen)
     openHeroesMenu()
-    putHeroesToRest(1)
+    putHeroesToRest()
     scrolDownHeroesMenu()
     prepareToWork()
-    startTeamWork()
+    startTeamWork(screen)
+    closeHeroesMenu(screen)
 
 
 def keepAlive():
     global keepAliveCounter
-    print("Keep alive running: {}".format(keepAliveCounter))
     keepAliveCounter += 1
-
+    logging.info("Keep alive running: {}".format(keepAliveCounter))
+    
     for screen in range(TOTAL_SCREENS):
         screen+=1
-        findHeroesMenu(screen)
-        openHeroesMenu()
-        closeHeroesMenu(screen)
-        
+
         if (keepAliveCounter%5 == 0):
-            print('iniciando farm')
-            # startFarm(screen)
+            logging.info("Starting farm in screen: {}".format(screen))
+            startFarm(screen)
+        else:
+            logging.info("Keeping alive screen: {}".format(screen))
+            findHeroesMenu(screen)
+            openHeroesMenu()
+            closeHeroesMenu(screen)
 
     if (keepAliveCounter%5 == 0):
         keepAliveCounter = 0
 
-    print("Keep alive ending .. See you agin in {} seconds!".format(KEEP_ALIVE_SEC))
+    logging.info("Keep alive ending .. See you agin in {} seconds!".format(KEEP_ALIVE_SEC))
     sleep(KEEP_ALIVE_SEC)
     keepAlive()
 
@@ -195,7 +206,9 @@ def keepAlive():
 # Main
 # ---------------------------------------------------
 def main():
+    logging.basicConfig(encoding='utf-8', level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
     # screenSetup()
+    logging.info("Starting bot!!")
     keepAlive()
 
 main()
