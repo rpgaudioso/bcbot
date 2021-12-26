@@ -3,12 +3,16 @@ from time import sleep
 import mouse
 import pygetwindow
 import logging
+import pyautogui
+import datetime
+
 
 # ---------------------------------------------------
 # Properties
 # ---------------------------------------------------
-WAIT_SEC = 1.5
 KEEP_ALIVE_SEC = 300
+FARM_CICLE = 10
+WAIT_SEC = 1.5
 SCROLL_DELAY = .1
 MOVE_SEC = .2
 HERO_STRIP_HEIGHT = 44
@@ -18,10 +22,9 @@ HERO_TOTAL_HEIGHT = 255
 TOTAL_HEROS = 15
 TOTAL_SCREENS = 4
 
-
 heroes_working = 0
 actualPos = 0
-keepAliveCounter = 4
+keepAliveCounter = 1
 
 # ---------------------------------------------------
 # Methods
@@ -141,7 +144,7 @@ def selectHero(delta):
 
 def getHeroesPosToWork(screen):
     if (screen == 1):
-        heroes = [1,2,3,4,5,6,8,9,10,11,12,14,15]
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,14,15]
     elif (screen == 2):
         heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
     elif (screen == 3):
@@ -167,6 +170,15 @@ def startTeamWork(screen):
         selectHero(delta)
         doWorkAction()
 
+def goToMainMenu(screen):
+    findHeroesMenu(screen)
+    mouse.move(-290, -370, False, MOVE_SEC)
+    mouse.click()
+
+def goToTreasureHunt(screen):
+    findHeroesMenu(screen)
+    mouse.move(0, -190, False, MOVE_SEC)
+    mouse.click()
 
 def startFarm(screen):
     findHeroesMenu(screen)
@@ -181,26 +193,43 @@ def startFarm(screen):
 def keepAlive():
     global keepAliveCounter
     keepAliveCounter += 1
-    logging.info("Keep alive running: {}".format(keepAliveCounter))
+    logging.info("Keep alive running in farm cicle: {}".format(keepAliveCounter))
     
     for screen in range(TOTAL_SCREENS):
         screen+=1
 
-        if (keepAliveCounter%5 == 0):
+        if (keepAliveCounter % FARM_CICLE == 0):
             logging.info("Starting farm in screen: {}".format(screen))
             startFarm(screen)
         else:
             logging.info("Keeping alive screen: {}".format(screen))
-            findHeroesMenu(screen)
-            openHeroesMenu()
-            closeHeroesMenu(screen)
+            handleNewMap()
+            goToMainMenu(screen)
+            goToTreasureHunt(screen)
 
-    if (keepAliveCounter%5 == 0):
+    if (keepAliveCounter % FARM_CICLE == 0):
         keepAliveCounter = 0
 
-    logging.info("Keep alive ending .. See you agin in {} seconds!".format(KEEP_ALIVE_SEC))
+
+    nextTick = datetime.datetime.now() + datetime.timedelta(seconds = KEEP_ALIVE_SEC).strftime("%b %d %Y %H:%M:%S")
+
+    logging.info("Keep alive ending .. See you again in {}".format(nextTick))
     sleep(KEEP_ALIVE_SEC)
     keepAlive()
+
+
+def handleNewMap():
+    logging.debug('Handling new map...')
+    pt = pyautogui.locateOnScreen('newMap.png')
+    
+    logging.debug(pt)
+
+    if(pt):
+        ptCenter = pyautogui.center(pt)
+        logging.debug(ptCenter)
+        pyautogui.click(ptCenter)
+
+    logging.debug('Handling new map - done!')
 
 # ---------------------------------------------------
 # Main
