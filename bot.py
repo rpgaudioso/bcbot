@@ -14,7 +14,7 @@ HERO_FIRST_POS_Y = -260
 HERO_TOTAL_HEIGHT = 255
 TOTAL_HEROS = 15
 
-heros_working = 0
+heroes_working = 0
 actualPos = 0
 
 # ---------------------------------------------------
@@ -34,7 +34,7 @@ def screenSetup():
             win.moveTo(700,520)
         
 
-def findHeroMenu(x=1):
+def findHeroesMenu(x=1):
     if (x == 1):
         mouse.move(365, 480, True, MOVE_SEC)
     elif (x == 2):
@@ -45,13 +45,13 @@ def findHeroMenu(x=1):
         mouse.move(1065, 1000, True, MOVE_SEC)
 
 
-def openHeroMenu():
+def openHeroesMenu():
     mouse.click()
     sleep(WAIT_SEC)
     mouse.click()
 
 
-def scrolDownHeroMenu():
+def scrolDownHeroesMenu():
     mouse.move(-150,-46,False, MOVE_SEC)
     sleep(WAIT_SEC)
     mouse.drag(0,0,0,-200,False, MOVE_SEC)
@@ -64,8 +64,8 @@ def scrolDownHeroMenu():
     sleep(WAIT_SEC)
 
 
-def closeHeroMenu(screen=1):
-    findHeroMenu(screen)
+def closeHeroesMenu(screen=1):
+    findHeroesMenu(screen)
     mouse.move(40,-320,False, MOVE_SEC)
     sleep(WAIT_SEC)
     mouse.click()
@@ -76,75 +76,36 @@ def closeHeroMenu(screen=1):
     sleep(WAIT_SEC)
 
 
-def selecHeroes(screen=1, qt=15):
-    findHeroMenu(screen)
-    sleep(WAIT_SEC)
-    mouse.move(-50, -50, False, MOVE_SEC)
-    sleep(WAIT_SEC)
-    # for x in range(qt):
-    #     sleep(WAIT_SEC)
-    #     mouse.click()
-
-def selectHero(qtd=1, dir=-1):
-    hero = 1
-
-    mouse.move(-150, HERO_FIRST_POS_Y, False, MOVE_SEC)
-    sleep(WAIT_SEC)
-
-    for x in range(qtd-1):
-        if(x < 10):
-            print("scroll")
-            for y in range(4):
-                mouse.wheel(dir)
-                sleep(SCROLL_DELAY)
-            sleep(SCROLL_DELAY)
-        else:
-            if(x == 10):
-               sleep(WAIT_SEC)
-               mouse.move(0, 16, False)
-
-            print("move mouse")
-            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT)*-dir,False, SCROLL_DELAY )
-            sleep(SCROLL_DELAY)
-
-
-
-
-
 def prepareToWork():
     mouse.move(100, 0, False, MOVE_SEC)
     sleep(WAIT_SEC)
 
 
-def work():
+def doWorkAction():
     mouse.click()
     sleep(WAIT_SEC)
-    global heros_working
-    heros_working += 1 
-    print("A hero goes to work. Total working: {}".format(heros_working))
+    global heroes_working
+    heroes_working += 1 
+    print("A hero goes to work. Total working heroes: {}".format(heroes_working))
 
 
-def prepareToRest():
-    mouse.move(140, 0, False, MOVE_SEC)
+def putHeroesToRest(total=15):
+    global heroes_working
 
-
-def rest():
-    mouse.click()
+    print("Put heroes to rest...")
+    mouse.move(-15, HERO_FIRST_POS_Y, False, MOVE_SEC)
     sleep(WAIT_SEC)
-    global heros_working
-    heros_working -= 1 
-    print(heros_working)
 
-
-def restAll(total=15):
-    mouse.move(140, 0, False, MOVE_SEC)
     for x in range(total):
         mouse.click()
         sleep(WAIT_SEC)
-    mouse.move(-140, 0, False, MOVE_SEC)
-    
+        
+    heroes_working = 0
+    mouse.move(15, -HERO_FIRST_POS_Y, False, MOVE_SEC)
+    print("Put heroes to rest - done!")
 
-def selectHeroDtU(delta):
+
+def selectHero(delta):
     print("Select hero - delta: {}".format(delta))
     global actualPos
     delta2 = 0
@@ -172,36 +133,44 @@ def selectHeroDtU(delta):
     print("actualPos: {}".format(actualPos))
 
 
-def workList():
+def getHeroesPosToWork():
+    heros =  [1,5,15,11,14,9]
+    # heros =  [4]
+    heros.sort(reverse=True)
+
+    return heros
+
+def startTeamWork():
+    global actualPos
+    actualPos = 0
     delta = 0
 
-    print("Heros to work: {}".format(HEROS_ORDER))
+    heroesPosToWork = getHeroesPosToWork()
+    print("Heroes going to work by positions: {}".format(heroesPosToWork))
 
-    for herosPos in HEROS_ORDER:
-        global actualPos
-        print("Finding hero pos: {}".format(herosPos))
-        delta = TOTAL_HEROS-herosPos-actualPos-heros_working
-        selectHeroDtU(delta)
-        work()
+    for herosPos in heroesPosToWork:
+        print("Finding hero in position: {}".format(herosPos))
+        delta = TOTAL_HEROS-herosPos-actualPos-heroes_working
+        selectHero(delta)
+        doWorkAction()
+
+
+def startFarm(screen):
+    findHeroesMenu(screen)
+    openHeroesMenu()
+    putHeroesToRest(1)
+    scrolDownHeroesMenu()
+    prepareToWork()
+    startTeamWork()
+   
 
 # ---------------------------------------------------
 # Main
 # ---------------------------------------------------
-# screenSetup()
+def main():
+    # screenSetup()
+    # aqui vai ter um for para rodar todas as 4 telas
+    startFarm(1)
 
-HEROS_WORKING = 0
-HEROS_ORDER = [1,5,10,15,14,12]
-HEROS_ORDER.sort(reverse=True)
 
-findHeroMenu(4)
-openHeroMenu()
-scrolDownHeroMenu()
-prepareToWork()
-workList()
-
-# 1  539 sapo
-# 5  543 kina
-# 10 548 ninja
-# 12 936 vamp
-# 14 938 doge
-# 15 939 chapeu
+main()
