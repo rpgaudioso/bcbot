@@ -25,9 +25,9 @@ HERO_TOTAL_HEIGHT = 255
 TOTAL_HEROS = 15
 TOTAL_SCREENS = 4
 
-heroes_working = 0
+activeHeroesQuatity = 0
 actualPos = 0
-farmCicle = 7
+farmCicle = 8
 
 # ---------------------------------------------------
 # Methods
@@ -92,13 +92,16 @@ def prepareToWork():
 def doWorkAction():
     mouse.click()
     sleep(WAIT_SEC)
-    global heroes_working
-    heroes_working += 1 
-    logging.debug("A hero goes to work. Total working heroes: {}".format(heroes_working))
+    global activeHeroesQuatity
+    global actualPos
+    activeHeroesQuatity += 1 
+    actualPos -= 1
+    logging.debug("actualPos: {}".format(actualPos))
+    logging.debug("A hero goes to work. Total working heroes: {}".format(activeHeroesQuatity))
 
 
 def putHeroesToRest(total=15):
-    global heroes_working
+    global activeHeroesQuatity
 
     logging.info("Put heroes to rest...")
     mouse.move(-15, HERO_FIRST_POS_Y, False, MOVE_SEC)
@@ -108,43 +111,46 @@ def putHeroesToRest(total=15):
         mouse.click()
         sleep(WAIT_SEC)
 
-    heroes_working = 0
+    activeHeroesQuatity = 0
     mouse.move(15, -HERO_FIRST_POS_Y, False, MOVE_SEC)
     logging.info("Put heroes to rest - done!")
 
 
-def selectHero(delta):
-    logging.debug("Select hero - delta: {}".format(delta))
+
+def selectHero(position):
+    logging.debug("Select hero in position: {}".format(position))
     global actualPos
-    delta2 = 0
-
-    if(delta + actualPos >= 9):
-        delta2 = delta + actualPos - 9 - heroes_working
-        delta = 9
-        logging.debug("delta: {} --- delta2: {}".format(delta, delta2))
-
-
-    if (actualPos-heroes_working < 9):
-        logging.debug("scroll up for {} times".format(delta))
-        for x in range(delta):
-            for y in range(4):
-                mouse.wheel(1)
-                sleep(SCROLL_DELAY)
-            sleep(WAIT_SEC)
-            actualPos += 1
     
-    if(delta2 != 0):
-        if(actualPos < 9):
-            mouse.move(0, -16, False)
-            sleep(WAIT_SEC)
-            
+    delta = actualPos - position
+    delta2 = 0
+    logging.debug("-------------------- actualPos: {}  --- position: {} --> Delta: {}".format(actualPos,position, delta))
+
+    if (delta + activeHeroesQuatity >= 9 ):
+        delta2 = delta - 9
+       
+    
+
+    logging.debug("scroll up for {} times".format(delta))
+    for x in range(delta):
+        for y in range(4):
+            mouse.wheel(1)
+            sleep(SCROLL_DELAY)
+        sleep(WAIT_SEC)
+        actualPos -= 1
+    
+
+    if (delta2 != 0):
+        mouse.move(0, -16, False, MOVE_SEC)
+        sleep(WAIT_SEC) 
         logging.debug("move mouse up for {} times".format(delta2))
         for x in range(delta2):
-            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT)*-1,False, SCROLL_DELAY )
-            sleep(SCROLL_DELAY)
-            actualPos += 1
+            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT)*-1,False, MOVE_SEC )
+            sleep(MOVE_SEC)
+            actualPos -= 1
+
 
     logging.debug("actualPos: {}".format(actualPos))
+    sleep(WAIT_SEC) 
 
 
 def getHeroesPosToWork(screen):
@@ -171,12 +177,14 @@ def getHeroesPosToWork(screen):
             heroes = [14,15,4,6,7]
         elif (screen == 2):
             # heroes = [8,7,12,4,15]
-            heroes = [8,7,12,4,15]
+            heroes = [4,15]
         elif (screen == 3):
             # heroes = [1,6,12,3,8]
-            heroes = [6,12,3,8,9,15]
+            # heroes = [6,12,3,8,9,15]
+            heroes = [1]
         elif (screen == 4):
             heroes = [15,4,6,14,3]
+            # heroes = [1]
 
     elif (farmCicle == FARM_CICLE_MAX):
         logging.info("getting slowest heroes...")
@@ -196,27 +204,13 @@ def getHeroesPosToWork(screen):
 
 def startTeamWork(screen):
     global actualPos
-    actualPos = 0
-    delta = 0
+    actualPos = 15
 
     heroesPosToWork = getHeroesPosToWork(screen)
-    logging.info("Heroes going to work by positions: {}".format(heroesPosToWork))
+    logging.info("Heroes going to work by their positions: {}".format(heroesPosToWork))
 
-    for heroesPos in heroesPosToWork:
-        logging.debug("Finding hero in position: {}".format(heroesPos))
-        logging.debug('TOTAL_HEROS: {} - heroesPos: {} - actualPos: {} - heroes_working: {}'.format(TOTAL_HEROS, heroesPos, actualPos, heroes_working))
-        
-        delta = TOTAL_HEROS-heroesPos-actualPos-heroes_working
-
-        # 15 = 15 - 15 - 0 - 0 = 0
-        # 1  = 15 - 1  - 0 - 0 = 14
-        # 2  = 15 - 2  - 0 - 0 = 13
-
-        # to na pos 5  e tem 1 working
-        # 2  = 15 - 2  - 5 - 1 = 7 
-
-
-        selectHero(delta)
+    for position in heroesPosToWork:
+        selectHero(position)
         doWorkAction()
 
 def goToMainMenu(screen):
@@ -311,10 +305,11 @@ def findBtAndClick(name):
 # Main
 # ---------------------------------------------------
 def main():
-    logging.basicConfig(encoding='utf-8', level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    logging.basicConfig(encoding='utf-8', level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
     # screenSetup()
-    logging.info("Starting bot!!")
-    keepAlive()
+    # logging.info("Starting bot!!")
+    # keepAlive()
+    startFarm(3)
 
 
 main()
