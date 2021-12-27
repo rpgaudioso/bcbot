@@ -10,10 +10,8 @@ import datetime
 # ---------------------------------------------------
 # Properties
 # ---------------------------------------------------
-KEEP_ALIVE_SEC = 240 
-FARM_CICLE_MAX = 12  # 48 min
-FARM_CICLE_MED = 8   # 32 min
-FARM_CICLE_MIN = 4   # 16 min
+KEEP_ALIVE_SEC = 300
+FARM_CICLE = 10
 WAIT_SEC = 1.5
 WAIT_SIGN_IN = 10
 SCROLL_DELAY = .03
@@ -27,7 +25,7 @@ TOTAL_SCREENS = 4
 
 heroes_working = 0
 actualPos = 0
-farmCicle = 7
+keepAliveCounter = 9
 
 # ---------------------------------------------------
 # Methods
@@ -66,9 +64,13 @@ def openHeroesMenu():
 def scrolDownHeroesMenu():
     mouse.move(-150,-46,False, MOVE_SEC)
     sleep(WAIT_SEC)
-    mouse.drag(0,0,0,-250,False, MOVE_SEC)
+    mouse.drag(0,0,0,-200,False, MOVE_SEC)
     sleep(WAIT_SEC)
-    mouse.move(0,242,False, MOVE_SEC)
+    mouse.move(0,200,False, MOVE_SEC)
+    sleep(WAIT_SEC)
+    mouse.drag(0,0,0,-200,False, MOVE_SEC)
+    sleep(WAIT_SEC)
+    mouse.move(0,192,False, MOVE_SEC)
     sleep(WAIT_SEC)
 
 
@@ -117,27 +119,21 @@ def selectHero(delta):
     logging.debug("Select hero - delta: {}".format(delta))
     global actualPos
     delta2 = 0
+    if(delta > 10):
+        delta2 = delta -10
+        delta = 10
 
-    if(delta + actualPos >= 9):
-        delta2 = delta + actualPos - 9 - heroes_working
-        delta = 9
-        logging.debug("delta: {} --- delta2: {}".format(delta, delta2))
-
-
-    if (actualPos-heroes_working < 9):
-        logging.debug("scroll up for {} times".format(delta))
-        for x in range(delta):
-            for y in range(4):
-                mouse.wheel(1)
-                sleep(SCROLL_DELAY)
-            sleep(WAIT_SEC)
-            actualPos += 1
+    logging.debug("scroll up for {} times".format(delta))
+    for x in range(delta):
+        for y in range(4):
+            mouse.wheel(1)
+            sleep(SCROLL_DELAY)
+        sleep(WAIT_SEC)
+        actualPos += 1
     
     if(delta2 != 0):
-        if(actualPos < 9):
-            mouse.move(0, -16, False)
-            sleep(WAIT_SEC)
-            
+        mouse.move(0, -16, False)
+        sleep(WAIT_SEC)
         logging.debug("move mouse up for {} times".format(delta2))
         for x in range(delta2):
             mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT)*-1,False, SCROLL_DELAY )
@@ -148,48 +144,15 @@ def selectHero(delta):
 
 
 def getHeroesPosToWork(screen):
-    
-    if (farmCicle == FARM_CICLE_MIN):
-        logging.info("getting fastest heroes...")
-        if (screen == 1):
-            # heroes = [13,2,5]
-            heroes = [13,2,5,9,12]
-        elif (screen == 2):
-            # heroes = [14,6,1,2]
-            heroes = [14,6,1,2,3]
-        elif (screen == 3):
-            # heroes = [7,13,10,11]
-            heroes = [7,13,10,11,1]
-        elif (screen == 4):
-            # heroes = [5,8,10,2]
-            heroes = [5,8,10,2,13]
-
-    if (farmCicle == FARM_CICLE_MED):
-        logging.info("getting not so fastest heroes...")
-        if (screen == 1):
-            # heroes = [9,12,14,15]
-            heroes = [14,15,4,6,7]
-        elif (screen == 2):
-            # heroes = [8,7,12,4,15]
-            heroes = [8,7,12,4,15]
-        elif (screen == 3):
-            # heroes = [1,6,12,3,8]
-            heroes = [6,12,3,8,9,15]
-        elif (screen == 4):
-            heroes = [15,4,6,14,3]
-
-    elif (farmCicle == FARM_CICLE_MAX):
-        logging.info("getting slowest heroes...")
-        if (screen == 1):
-            heroes = [10,11,1,3,8]
-        elif (screen == 2):
-            heroes = [11,13,5,9,10]
-        elif (screen == 3):
-            # heroes = [9,15,4,5,2,11,14]
-            heroes = [4,5,2,11,14]
-        elif (screen == 4):
-            heroes = [11,12,9,1,7]
-    
+    if (screen == 1):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,14,15]
+    elif (screen == 2):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    elif (screen == 3):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    elif (screen == 4):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+        
     heroes.sort(reverse=True)
     return heroes
 
@@ -204,18 +167,7 @@ def startTeamWork(screen):
 
     for heroesPos in heroesPosToWork:
         logging.debug("Finding hero in position: {}".format(heroesPos))
-        logging.debug('TOTAL_HEROS: {} - heroesPos: {} - actualPos: {} - heroes_working: {}'.format(TOTAL_HEROS, heroesPos, actualPos, heroes_working))
-        
         delta = TOTAL_HEROS-heroesPos-actualPos-heroes_working
-
-        # 15 = 15 - 15 - 0 - 0 = 0
-        # 1  = 15 - 1  - 0 - 0 = 14
-        # 2  = 15 - 2  - 0 - 0 = 13
-
-        # to na pos 5  e tem 1 working
-        # 2  = 15 - 2  - 5 - 1 = 7 
-
-
         selectHero(delta)
         doWorkAction()
 
@@ -232,7 +184,7 @@ def goToTreasureHunt(screen):
 def startFarm(screen):
     findHeroesMenu(screen)
     openHeroesMenu()
-    putHeroesToRest(5)
+    putHeroesToRest(3)
     scrolDownHeroesMenu()
     prepareToWork()
     startTeamWork(screen)
@@ -240,17 +192,15 @@ def startFarm(screen):
 
 
 def keepAlive():
-    global farmCicle
-    farmCicle += 1
-    logging.info("Keep alive running in farm cicle: {}/{}".format(farmCicle, FARM_CICLE_MAX))
-
-    handleSignIn()
+    global keepAliveCounter
+    keepAliveCounter += 1
+    logging.info("Keep alive running in farm cicle: {}".format(keepAliveCounter))
     
     for screen in range(TOTAL_SCREENS):
         screen+=1
         handleNewMap()
 
-        if (farmCicle == FARM_CICLE_MAX or farmCicle == FARM_CICLE_MED or farmCicle == FARM_CICLE_MIN):
+        if (keepAliveCounter % FARM_CICLE == 0):
             logging.info("Starting farm in screen: {}".format(screen))
             startFarm(screen)
         else:
@@ -258,16 +208,27 @@ def keepAlive():
             goToMainMenu(screen)
             goToTreasureHunt(screen)
 
-    handleNewMap()
+    if (keepAliveCounter % FARM_CICLE == 0):
+        keepAliveCounter = 0
 
-    if (farmCicle == FARM_CICLE_MAX):
-        farmCicle = 0
 
     nextTick = (datetime.datetime.now() + datetime.timedelta(seconds = KEEP_ALIVE_SEC)).strftime("%b %d %Y %H:%M:%S")
 
-    logging.info("Keep alive ending .. See you again at cicle {} in {}".format(farmCicle+1, nextTick))
+    logging.info("Keep alive ending .. See you again in {}".format(nextTick))
     sleep(KEEP_ALIVE_SEC)
     keepAlive()
+
+def handleSignIn():
+    logging.debug('Handling sign in...')
+    finded = findBtAndClick('connectWallet')
+    if (finded == True):
+        sleep(WAIT_SIGN_IN)
+        findBtAndClick('signIn')
+        sleep(WAIT_SIGN_IN)
+        #loading...
+        findBtAndClick('treasureHunt')
+        sleep(WAIT_SEC)
+    logging.debug('Handling sing in - done!')
 
 
 def handleNewMap():
@@ -284,20 +245,6 @@ def handleNewMap():
     logging.debug('Handling new map - done!')
 
 
-def handleSignIn():
-    logging.debug('Handling sign in...')
-    finded = findBtAndClick('connectWallet')
-    if (finded == True):
-        sleep(WAIT_SIGN_IN)
-        findBtAndClick('signIn')
-        sleep(WAIT_SIGN_IN)
-        #loading...
-        findBtAndClick('treasureHunt')
-        sleep(WAIT_SEC)
-    logging.debug('Handling sing in - done!')
-
-
-
 def findBtAndClick(name):
     pt = pyautogui.locateOnScreen('{}.png'.format(name))
     if(pt):
@@ -307,6 +254,7 @@ def findBtAndClick(name):
         return True
     return False
 
+
 # ---------------------------------------------------
 # Main
 # ---------------------------------------------------
@@ -315,6 +263,5 @@ def main():
     # screenSetup()
     logging.info("Starting bot!!")
     keepAlive()
-
 
 main()

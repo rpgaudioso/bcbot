@@ -1,15 +1,15 @@
 import pyautogui
-import datetime
+from time import sleep
 
-pt = pyautogui.locateOnScreen('newMap.png')
 
-print(pt)
+def findBtAndClick(name):
+    pt = pyautogui.locateOnScreen('{}.png'.format(name))
+    print(pt)
+    if(pt):
+        ptCenter = pyautogui.center(pt)
+        pyautogui.click(ptCenter)
 
-now = datetime.datetime.now()
-now_plus_10 = now + datetime.timedelta(minutes = 10)
-print(now_plus_10.strftime("%b %d %Y %H:%M:%S"))
 
-if(pt):
-    ptCenter = pyautogui.center(pt)
-    print(ptCenter)
-    pyautogui.click(ptCenter)
+findBtAndClick('connectWallet')
+sleep(10)
+findBtAndClick('signIn')
