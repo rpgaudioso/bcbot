@@ -26,8 +26,14 @@ TOTAL_HEROS = 15
 TOTAL_SCREENS = 4
 
 activeHeroesQuatity = 0
-currentPos = 1
-farmCicle = 8
+currentPos = 2
+farmCicle = 11
+
+# TODO: think about maintenance time
+STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
+START_TIME = datetime.time( 7,30,0 ) # Time, without a date
+onOff = True
+
 
 # ---------------------------------------------------
 # Methods
@@ -215,28 +221,39 @@ def startFarm(screen):
 
 
 def keepAlive():
+    global onOff
     global farmCicle
     farmCicle += 1
     logging.info("Keep alive running in farm cicle: {}/{}".format(farmCicle, FARM_CICLE_MAX))
 
-    handleSignIn()
-    
-    for screen in range(TOTAL_SCREENS):
-        screen+=1
+    if(onOff):
+        handleSignIn()
+        
+        for screen in range(TOTAL_SCREENS):
+            screen+=1
+            handleNewMap()
+
+            if (farmCicle == FARM_CICLE_MAX or farmCicle == FARM_CICLE_MED or farmCicle == FARM_CICLE_MIN):
+                logging.info("Starting farm in screen: {}".format(screen))
+                startFarm(screen)
+            else:
+                logging.info("Keeping alive screen: {}".format(screen))
+                goToMainMenu(screen)
+                goToTreasureHunt(screen)
+
         handleNewMap()
 
-        if (farmCicle == FARM_CICLE_MAX or farmCicle == FARM_CICLE_MED or farmCicle == FARM_CICLE_MIN):
-            logging.info("Starting farm in screen: {}".format(screen))
-            startFarm(screen)
-        else:
-            logging.info("Keeping alive screen: {}".format(screen))
-            goToMainMenu(screen)
-            goToTreasureHunt(screen)
-
-    handleNewMap()
 
     if (farmCicle == FARM_CICLE_MAX):
         farmCicle = 0
+
+    
+    # if(datetime.datetime.now().time() > STOP_TIME and datetime.datetime.now().time() < START_TIME):
+    #     onOff = False
+    # else:
+    #     onOff = True
+
+    logging.info('onOff: {}'.format(onOff))
 
     nextTick = (datetime.datetime.now() + datetime.timedelta(seconds = KEEP_ALIVE_SEC)).strftime("%b %d %Y %H:%M:%S")
     logging.info("Keep alive ending .. See you again at cicle {} in {}".format(farmCicle+1, nextTick))
