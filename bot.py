@@ -15,12 +15,12 @@ FARM_CICLE_MAX = 12  # 48 min
 FARM_CICLE_MED = 8   # 32 min
 FARM_CICLE_MIN = 4   # 16 min
 WAIT_SEC = 1.5
-WAIT_SIGN_IN = 10
+WAIT_SIGN_IN = 14
 SCROLL_DELAY = .03
 MOVE_SEC = .2
 HERO_STRIP_HEIGHT = 44
 HERO_STRIP_DIVIDER = 6
-HERO_FIRST_POS_Y = -270
+HERO_FIRST_POS_Y = -260
 HERO_TOTAL_HEIGHT = 255
 TOTAL_HEROS = 15
 TOTAL_SCREENS = 4
@@ -227,11 +227,11 @@ def keepAlive():
     logging.info("Keep alive running in farm cicle: {}/{}".format(farmCicle, FARM_CICLE_MAX))
 
     if(onOff):
-        handleSignIn()
         
         for screen in range(TOTAL_SCREENS):
             screen+=1
             handleNewMap()
+            handleSignIn()
 
             if (farmCicle == FARM_CICLE_MAX or farmCicle == FARM_CICLE_MED or farmCicle == FARM_CICLE_MIN):
                 logging.info("Starting farm in screen: {}".format(screen))
@@ -257,6 +257,7 @@ def keepAlive():
 
     nextTick = (datetime.datetime.now() + datetime.timedelta(seconds = KEEP_ALIVE_SEC)).strftime("%b %d %Y %H:%M:%S")
     logging.info("Keep alive ending .. See you again at cicle {} in {}".format(farmCicle+1, nextTick))
+    openSystemClock()
     sleep(KEEP_ALIVE_SEC)
     keepAlive()
 
@@ -277,17 +278,29 @@ def handleNewMap():
 
 
 def handleSignIn():
-    logging.debug('Handling sign in...')
-    finded = findBtAndClick('connectWallet')
-    if (finded == True):
-        sleep(WAIT_SIGN_IN)
-        findBtAndClick('signIn')
-        sleep(WAIT_SIGN_IN)
-        #loading...
-        findBtAndClick('treasureHunt')
-        sleep(WAIT_SEC)
-    logging.debug('Handling sing in - done!')
+    logging.info('Handling sign in...')
+    btName = 'connectWallet'
 
+    pt = pyautogui.locateOnScreen('{}.png'.format(btName))
+    if(pt):
+        logging.info('connectWallet finded ... starting reload!')
+        #reload screen...
+        ptCenter = pyautogui.center(pt)
+        mouse.move(ptCenter.x,ptCenter.y-100,True, MOVE_SEC)
+        mouse.click()
+        pyautogui.press('f5')
+        sleep(WAIT_SIGN_IN)
+
+        finded = findBtAndClick(btName)
+        if (finded == True):
+            sleep(WAIT_SIGN_IN)
+            findBtAndClick('signIn')
+            sleep(WAIT_SIGN_IN)
+            #loading...
+            findBtAndClick('treasureHunt')
+            sleep(WAIT_SEC)
+
+    logging.info('Handling sing in - done!')
 
 
 def findBtAndClick(name):
@@ -299,6 +312,14 @@ def findBtAndClick(name):
         return True
     return False
 
+    pyautogui.locateOnWindow()
+
+
+def openSystemClock():
+    mouse.move(2470, 1055, True, MOVE_SEC)
+    mouse.click()
+
+
 # ---------------------------------------------------
 # Main
 # ---------------------------------------------------
@@ -307,6 +328,5 @@ def main():
     # screenSetup()
     logging.info("Starting bot!!")
     keepAlive()
-
 
 main()
