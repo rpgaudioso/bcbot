@@ -15,7 +15,7 @@ FARM_CICLE_MAX = 12  # 48 min
 FARM_CICLE_MED = 8   # 32 min
 FARM_CICLE_MIN = 4   # 16 min
 WAIT_SEC = 1.5
-WAIT_SIGN_IN = 14
+WAIT_SIGN_IN = 15
 SCROLL_DELAY = .03
 MOVE_SEC = .2
 HERO_STRIP_HEIGHT = 44
@@ -156,7 +156,7 @@ def getHeroesPosToWork(screen):
     if (farmCicle == FARM_CICLE_MIN):
         logging.info("getting fastest heroes...")
         if (screen == 1):
-            heroes = [13,2,5,9,12,14,15]
+            heroes = [13,2,5,9,12,14]
         elif (screen == 2):
             heroes = [14,6,1,2,3]
         elif (screen == 3):
@@ -167,7 +167,7 @@ def getHeroesPosToWork(screen):
     if (farmCicle == FARM_CICLE_MED):
         logging.info("getting not so fastest heroes...")
         if (screen == 1):
-            heroes = [4,6,7,10,11]
+            heroes = [4,6,7,10,11,15]
         elif (screen == 2):
             heroes = [8,7,12,4,15]
         elif (screen == 3):
@@ -284,21 +284,22 @@ def handleSignIn():
     pt = pyautogui.locateOnScreen('{}.png'.format(btName))
     if(pt):
         logging.info('connectWallet finded ... starting reload!')
-        #reload screen...
+        # reload screen...
         ptCenter = pyautogui.center(pt)
-        mouse.move(ptCenter.x,ptCenter.y-100,True, MOVE_SEC)
+        mouse.move(ptCenter.x,ptCenter.y-100,True)
         mouse.click()
         pyautogui.press('f5')
         sleep(WAIT_SIGN_IN)
 
-        finded = findBtAndClick(btName)
-        if (finded == True):
-            sleep(WAIT_SIGN_IN)
-            findBtAndClick('signIn')
-            sleep(WAIT_SIGN_IN)
-            #loading...
-            findBtAndClick('treasureHunt')
-            sleep(WAIT_SEC)
+        # when screen is reloaded, connectWallet again:
+        findBtAndClick(btName)
+        sleep(WAIT_SIGN_IN)
+        # when confirmation pop-up appears:
+        findBtAndClick('signIn')
+        sleep(WAIT_SIGN_IN)
+        # loading... when in game menu:
+        findBtAndClick('treasureHunt')
+        sleep(WAIT_SEC)
 
     logging.info('Handling sing in - done!')
 
