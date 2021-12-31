@@ -5,7 +5,8 @@ import pygetwindow
 import logging
 import pyautogui
 import datetime
-
+import config as cf
+import duallog as log
 
 # ---------------------------------------------------
 # Properties
@@ -35,9 +36,12 @@ START_TIME = datetime.time( 7,30,0 ) # Time, without a date
 onOff = True
 
 
+
 # ---------------------------------------------------
 # Methods
 # ---------------------------------------------------
+
+
 def screenSetup():
     for screen in range(4):
         win = pygetwindow.getWindowsWithTitle('Bombcrypto - Google Chrome')[screen]
@@ -325,9 +329,12 @@ def openSystemClock():
 # Main
 # ---------------------------------------------------
 def main():
-    logging.basicConfig(encoding='utf-8', level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    cf.init()
+    log.init()
+
     # screenSetup()
     logging.info("Starting bot!!")
-    keepAlive()
+
+    # keepAlive()
 
 main()
