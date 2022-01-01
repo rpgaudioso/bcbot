@@ -32,7 +32,7 @@ TOTAL_SCREENS = 4
 
 activeHeroesQuatity = 0
 currentPos = 0
-farmCicle = 2
+farmCicle = 8
 
 # TODO: think about maintenance time
 STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
