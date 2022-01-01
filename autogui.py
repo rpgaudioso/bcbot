@@ -16,12 +16,12 @@ from time import sleep
 
 
 
-sleep(10)
+# sleep(10)
 # pyautogui.screenshot('map.png', region=(0,0, 2560, 1080))
 pt = list(pyautogui.locateAllOnScreen('wall.png'))
-print(pt)
+print(len(pt))
 
 print('rock')
 
-pt = list(pyautogui.locateAllOnScreen('rock.png'))
-print(pt)
+pt = list(pyautogui.locateAllOnScreen('rock2.png' ))
+print(len(pt))
