@@ -339,6 +339,11 @@ def main():
     # screenSetup()
     logging.info("Starting bot!!")
 
-    keepAlive()
+    # keepAlive()
 
+    pt = pyautogui.locateOnScreen('rock.png')
+
+    print(pt)
+
+ 
 main()
