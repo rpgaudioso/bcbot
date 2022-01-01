@@ -31,8 +31,8 @@ TOTAL_HEROS = 15
 TOTAL_SCREENS = 4
 
 activeHeroesQuatity = 0
-currentPos = 2
-farmCicle = 8
+currentPos = 0
+farmCicle = 2
 
 # TODO: think about maintenance time
 STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
@@ -339,11 +339,11 @@ def main():
     # screenSetup()
     logging.info("Starting bot!!")
 
-    # keepAlive()
+    keepAlive()
 
-    pt = pyautogui.locateOnScreen('rock.png')
+    # pt = pyautogui.locateOnScreen('treasureHunt.png')
 
-    print(pt)
+    # print(pt)
 
  
 main()
