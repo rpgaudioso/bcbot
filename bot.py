@@ -32,7 +32,7 @@ TOTAL_SCREENS = 4
 
 activeHeroesQuatity = 0
 currentPos = 0
-farmCicle = 8
+farmCicle = 0
 
 # TODO: think about maintenance time
 STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
@@ -49,26 +49,37 @@ onOff = True
 def screenSetup():
     for screen in range(4):
         win = pygetwindow.getWindowsWithTitle('Bombcrypto - Google Chrome')[screen]
-        win.size = (720, 540)
+        # win.size = (720, 540)
+        win.size = (658, 516)
         if (screen == 0):
             win.moveTo(0,0)
         elif (screen == 1):
-            win.moveTo(700,0)
+            win.moveTo(650,0)
         elif (screen == 2):
             win.moveTo(0,520)
         elif (screen == 3):
-            win.moveTo(700,520)
+            win.moveTo(650,520)
         
 
 def findHeroesMenu(screen):
     if (screen == 1):
-        mouse.move(365, 480, True, MOVE_SEC)
+        mouse.move(328, 466, True, MOVE_SEC)
     elif (screen == 2):
-        mouse.move(1065, 480, True, MOVE_SEC)
+        mouse.move(978, 466, True, MOVE_SEC)
     elif (screen == 3):
-        mouse.move(365, 1000, True, MOVE_SEC)
+        mouse.move(328, 986, True, MOVE_SEC)
     elif (screen == 4):
-        mouse.move(1065, 1000, True, MOVE_SEC)
+        mouse.move(978, 986, True, MOVE_SEC)
+
+
+def goFullscreen(screen):
+    findHeroesMenu(screen)
+    mouse.move(306, 26, False, MOVE_SEC)
+    mouse.click()
+
+
+def quitFullscreen():
+    pyautogui.hotkey('esc')
 
 
 def openHeroesMenu():
@@ -335,15 +346,15 @@ def openSystemClock():
 def main():
     cf.init()
     log.init()
-
     # screenSetup()
-    logging.info("Starting bot!!")
 
+    logging.info("Starting bot!!")
     keepAlive()
 
-    # pt = pyautogui.locateOnScreen('treasureHunt.png')
+    # goFullscreen(1)
+    # sleep(5)
+    # quitFullscreen()
 
-    # print(pt)
 
- 
+
 main()
