@@ -109,9 +109,10 @@ def setup_logging(console_log_output, console_log_level, console_log_color, logf
 def init():
 
     # Setup logging
-    if (not setup_logging(console_log_output="stdout", console_log_level="debug", console_log_color=True,
-                        logfile_file="bot.log", logfile_log_level="debug", logfile_log_color=False,
-                        log_line_template="%(color_on)s[%(asctime)s] [%(threadName)s] [%(levelname)-8s] - %(message)s %(color_off)s")):
+    if (not setup_logging(console_log_output="stdout", console_log_level="info", console_log_color=True,
+                        logfile_file="bot.log", logfile_log_level="info", logfile_log_color=False,
+                        # log_line_template="%(color_on)s[%(asctime)s] [%(threadName)s] [%(levelname)-8s] - %(message)s %(color_off)s")):
+                        log_line_template="%(color_on)s[%(asctime)s] - %(message)s %(color_off)s")):
         print("Failed to setup logging, aborting.")
         return 1
 

@@ -11,10 +11,14 @@ import duallog as log
 # ---------------------------------------------------
 # Properties
 # ---------------------------------------------------
-KEEP_ALIVE_SEC = 240 
-FARM_CICLE_MAX = 12  # 48 min
-FARM_CICLE_MED = 8   # 32 min
-FARM_CICLE_MIN = 4   # 16 min
+# KEEP_ALIVE_SEC = 240 
+# FARM_CICLE_MAX = 12  # 48 min
+# FARM_CICLE_MED = 8   # 32 min
+# FARM_CICLE_MIN = 4   # 16 min
+KEEP_ALIVE_SEC = 260 
+FARM_CICLE_MAX = 13 
+FARM_CICLE_MED = 9  
+FARM_CICLE_MIN = 5  
 WAIT_SEC = 1.5
 WAIT_SIGN_IN = 15
 SCROLL_DELAY = .03
@@ -28,7 +32,7 @@ TOTAL_SCREENS = 4
 
 activeHeroesQuatity = 0
 currentPos = 2
-farmCicle = 11
+farmCicle = 8
 
 # TODO: think about maintenance time
 STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
@@ -69,7 +73,7 @@ def findHeroesMenu(screen):
 
 def openHeroesMenu():
     mouse.click()
-    sleep(WAIT_SEC)
+    sleep(WAIT_SEC*2)
     mouse.click()
 
 
@@ -292,12 +296,12 @@ def handleSignIn():
         ptCenter = pyautogui.center(pt)
         mouse.move(ptCenter.x,ptCenter.y-100,True)
         mouse.click()
-        pyautogui.press('f5')
+        pyautogui.hotkey('ctrl','shift','r')
         sleep(WAIT_SIGN_IN)
-
         # when screen is reloaded, connectWallet again:
-        findBtAndClick(btName)
-        sleep(WAIT_SIGN_IN)
+        mouse.move(ptCenter.x,ptCenter.y,True)
+        mouse.click()
+        sleep(WAIT_SIGN_IN/2)
         # when confirmation pop-up appears:
         findBtAndClick('signIn')
         sleep(WAIT_SIGN_IN)
@@ -335,6 +339,6 @@ def main():
     # screenSetup()
     logging.info("Starting bot!!")
 
-    # keepAlive()
+    keepAlive()
 
 main()
