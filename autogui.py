@@ -2,26 +2,13 @@ import pyautogui
 from time import sleep
 
 
-# def findBtAndClick(name):
-#     pt = pyautogui.locateOnScreen('{}.png'.format(name))
-#     print(pt)
-#     if(pt):
-#         ptCenter = pyautogui.center(pt)
-#         pyautogui.click(ptCenter)
+sleep(6)
+pyautogui.screenshot('map_current.png', region=(0,0, 2560, 1080))
 
-
-# findBtAndClick('connectWallet')
-# sleep(10)
-# findBtAndClick('signIn')
-
-
-
-# sleep(10)
-# pyautogui.screenshot('map.png', region=(0,0, 2560, 1080))
-pt = list(pyautogui.locateAllOnScreen('wall.png'))
+pt = list(pyautogui.locateAllOnScreen('wall3.png'))
 print(len(pt))
 
 print('rock')
 
-pt = list(pyautogui.locateAllOnScreen('rock2.png' ))
+pt = list(pyautogui.locateAllOnScreen('rock3.png' ))
 print(len(pt))
