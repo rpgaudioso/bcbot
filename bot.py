@@ -32,7 +32,7 @@ TOTAL_SCREENS = 4
 
 activeHeroesQuatity = 0
 currentPos = 0
-farmCicle = 0
+farmCicle = 8
 
 # TODO: think about maintenance time
 STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
@@ -300,28 +300,39 @@ def handleNewMap():
 def handleSignIn():
     logging.info('Handling signIn...')
 
-    connectButtons = list(pyautogui.locateAllOnScreen('connectWallet.png'))
+    connectButtons = list(pyautogui.locateAllOnScreen('imgs/gui/connect-wallet.png'))
     if(connectButtons):
         logging.info('{} screens need to signIn ... starting process!'.format(len(connectButtons)))
         
         for btn in connectButtons:
             logging.info('Sign in screen...')
-            btnPos = pyautogui.center(btn)
-            mouse.move(btnPos.x,btnPos.y-100,True)
-            mouse.click()
-            pyautogui.hotkey('ctrl','f5')
-            sleep(WAIT_SIGN_IN) # Time to reload credits screen
-            pyautogui.click(btnPos)
-            sleep(WAIT_SIGN_IN/2) # Wait confirmation pop-up
-            signInBtn = pyautogui.locateCenterOnScreen('signIn.png')
-            pyautogui.click(signInBtn)
-            sleep(WAIT_SIGN_IN/2) # Wait main menu
-            treasureHuntBtn = pyautogui.locateCenterOnScreen('treasureHunt.png')
+            signInHappyPath(btn)
+
+            okBtn = pyautogui.locateCenterOnScreen('imgs/gui/ok.png')
+            if(okBtn):
+                pyautogui.click(okBtn)
+                sleep(WAIT_SIGN_IN) # Time to reload credits screen
+                signInHappyPath(btn)
+
+            treasureHuntBtn = pyautogui.locateCenterOnScreen('imgs/gui/treasure-hunt.png')
             pyautogui.click(treasureHuntBtn)
-            sleep(WAIT_SEC)
+            sleep(WAIT_SIGN_IN/3)
             logging.info('Sign in screen done!')
 
     logging.info('Handling singIn - done!')
+
+
+def signInHappyPath(btn):
+    btnPos = pyautogui.center(btn)
+    mouse.move(btnPos.x,btnPos.y-100,True)
+    mouse.click()
+    pyautogui.hotkey('ctrl','f5')
+    sleep(WAIT_SIGN_IN) # Time to reload credits screen
+    pyautogui.click(btnPos)
+    sleep(WAIT_SIGN_IN/2) # Wait confirmation pop-up
+    signInBtn = pyautogui.locateCenterOnScreen('imgs/gui/sign-in.png')
+    pyautogui.click(signInBtn)
+    sleep(WAIT_SIGN_IN) # Wait main menu
 
 
 def findBtAndClick(name):
