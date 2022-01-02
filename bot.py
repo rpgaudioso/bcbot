@@ -248,10 +248,10 @@ def keepAlive():
     if(onOff):
         
         handleSignIn()
+        handleNewMap()
         
         for screen in range(TOTAL_SCREENS):
             screen+=1
-            handleNewMap()
 
             if (farmCicle == FARM_CICLE_MAX or farmCicle == FARM_CICLE_MED or farmCicle == FARM_CICLE_MIN):
                 logging.info("Starting farm in screen: {}".format(screen))
@@ -260,8 +260,6 @@ def keepAlive():
                 logging.info("Keeping alive screen: {}".format(screen))
                 goToMainMenu(screen)
                 goToTreasureHunt(screen)
-
-        handleNewMap()
 
 
     if (farmCicle == FARM_CICLE_MAX):
@@ -284,15 +282,18 @@ def keepAlive():
 
 def handleNewMap():
     logging.debug('Handling new map...')
-    pt = pyautogui.locateOnScreen('newMap.png')
+    newMapBtns = list(pyautogui.locateAllOnScreen('imgs/gui/new-map.png'))
     
-    logging.debug(pt)
-
-    if(pt):
-        ptCenter = pyautogui.center(pt)
-        logging.debug(ptCenter)
-        pyautogui.click(ptCenter)
-        sleep(1)
+    if(newMapBtns):
+        for btn in newMapBtns:
+            btnPos = pyautogui.center(btn)
+            currentTime = datetime.now().strftime("%H:%M:%S")
+            pyautogui.screenshot('imgs/screenshots/map{}.png'.format(currentTime))
+            pyautogui.click(btnPos)
+            sleep(1)
+            # goFullscreen(1)
+            # sleep(5)
+            # quitFullscreen()
 
     logging.debug('Handling new map - done!')
 
@@ -300,11 +301,11 @@ def handleNewMap():
 def handleSignIn():
     logging.info('Handling signIn...')
 
-    connectButtons = list(pyautogui.locateAllOnScreen('imgs/gui/connect-wallet.png'))
-    if(connectButtons):
-        logging.info('{} screens need to signIn ... starting process!'.format(len(connectButtons)))
+    connectBtns = list(pyautogui.locateAllOnScreen('imgs/gui/connect-wallet.png'))
+    if(connectBtns):
+        logging.info('{} screens need to signIn ... starting process!'.format(len(connectBtns)))
         
-        for btn in connectButtons:
+        for btn in connectBtns:
             logging.info('Sign in screen...')
             signInHappyPath(btn)
 
