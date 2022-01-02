@@ -25,11 +25,11 @@ import logging
 class LogFormatter(logging.Formatter):
 
     COLOR_CODES = {
-        logging.CRITICAL: "\033[1;35m", # bright/bold magenta
-        logging.ERROR:    "\033[1;31m", # bright/bold red
-        logging.WARNING:  "\033[1;33m", # bright/bold yellow
+        logging.CRITICAL: "\033[0;35m", # bright/bold magenta
+        logging.ERROR:    "\033[0;31m", # bright/bold red
+        logging.WARNING:  "\033[0;33m", # bright/bold yellow
         logging.INFO:     "\033[0;36m", # white / light blue
-        logging.DEBUG:    "\033[1;32m"  # bright/ green
+        logging.DEBUG:    "\033[0;32m"  # bright/ green
     }
 
     RESET_CODE = "\033[0m"

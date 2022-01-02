@@ -32,7 +32,7 @@ TOTAL_SCREENS = 4
 
 activeHeroesQuatity = 0
 currentPos = 0
-farmCicle = 8
+farmCicle = 5
 
 # TODO: think about maintenance time
 STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
@@ -281,7 +281,7 @@ def keepAlive():
 
 
 def handleNewMap():
-    logging.debug('Handling new map...')
+    logging.info('Handling new map...')
     newMapBtns = list(pyautogui.locateAllOnScreen('imgs/gui/new-map.png'))
     
     if(newMapBtns):
@@ -295,7 +295,7 @@ def handleNewMap():
             # sleep(5)
             # quitFullscreen()
 
-    logging.debug('Handling new map - done!')
+    logging.info('Handling new map - done!')
 
 
 def handleSignIn():
@@ -303,7 +303,7 @@ def handleSignIn():
 
     connectBtns = list(pyautogui.locateAllOnScreen('imgs/gui/connect-wallet.png'))
     if(connectBtns):
-        logging.info('{} screens need to signIn ... starting process!'.format(len(connectBtns)))
+        logging.warning('{} screens need to signIn ... starting process!'.format(len(connectBtns)))
         
         for btn in connectBtns:
             logging.info('Sign in screen...')
