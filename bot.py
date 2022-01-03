@@ -32,7 +32,7 @@ TOTAL_SCREENS = 4
 
 activeHeroesQuatity = 0
 currentPos = 0
-farmCicle = 5
+farmCicle = 7
 
 # TODO: think about maintenance time
 STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
@@ -287,8 +287,8 @@ def handleNewMap():
     if(newMapBtns):
         for btn in newMapBtns:
             btnPos = pyautogui.center(btn)
-            currentTime = datetime.now().strftime("%H:%M:%S")
-            pyautogui.screenshot('imgs/screenshots/map{}.png'.format(currentTime))
+            currentTime = datetime.datetime.now().strftime("%b-%d-%Y-%H-%M-%S")
+            pyautogui.screenshot('imgs/screenshots/map-{}.png'.format(currentTime))
             pyautogui.click(btnPos)
             sleep(1)
             # goFullscreen(1)
@@ -367,7 +367,5 @@ def main():
     # goFullscreen(1)
     # sleep(5)
     # quitFullscreen()
-
-
 
 main()
