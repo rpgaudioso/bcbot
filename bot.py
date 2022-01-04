@@ -15,14 +15,15 @@ import duallog as log
 # FARM_CICLE_MAX = 12  # 48 min
 # FARM_CICLE_MED = 8   # 32 min
 # FARM_CICLE_MIN = 4   # 16 min
-KEEP_ALIVE_SEC = 260 
-FARM_CICLE_MAX = 13 
+KEEP_ALIVE_SEC = 300
+FARM_CICLE_MAX = 10 
 FARM_CICLE_MED = 9  
 FARM_CICLE_MIN = 5  
 WAIT_SEC = 1.5
 WAIT_SIGN_IN = 15
+WAIT_NEW_MAP = 2
 SCROLL_DELAY = .03
-MOVE_SEC = .2
+MOVE_SEC = .1
 HERO_STRIP_HEIGHT = 44
 HERO_STRIP_DIVIDER = 6
 HERO_FIRST_POS_Y = -260
@@ -32,7 +33,7 @@ TOTAL_SCREENS = 4
 
 activeHeroesQuatity = 0
 currentPos = 0
-farmCicle = 7
+farmCicle = 0
 
 # TODO: think about maintenance time
 STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
@@ -72,14 +73,14 @@ def findHeroesMenu(screen):
         mouse.move(978, 986, True, MOVE_SEC)
 
 
-def goFullscreen(screen):
-    findHeroesMenu(screen)
-    mouse.move(306, 26, False, MOVE_SEC)
-    mouse.click()
+def goFullscreen():
+    pyautogui.hotkey('F11')
+    fullscreenBtn = pyautogui.locateCenterOnScreen('imgs/gui/full-screen.png')
+    pyautogui.click(fullscreenBtn)
 
 
 def quitFullscreen():
-    pyautogui.hotkey('esc')
+    pyautogui.hotkey('F11')
 
 
 def openHeroesMenu():
@@ -172,38 +173,47 @@ def selectHero(desiredPos):
 
 def getHeroesPosToWork(screen):
     
-    if (farmCicle == FARM_CICLE_MIN):
-        logging.info("getting fastest heroes...")
-        if (screen == 1):
-            heroes = [13,2,5,9,12,14]
-        elif (screen == 2):
-            heroes = [14,6,1,2,3]
-        elif (screen == 3):
-            heroes = [7,13,10,1,6,12,3,8]
-        elif (screen == 4):
-            heroes = [5,8,10,2,13,15,4,6,14]
+    # if (farmCicle == FARM_CICLE_MIN):
+    #     logging.info("getting fastest heroes...")
+    #     if (screen == 1):
+    #         heroes = [13,2,5,9,12,14]
+    #     elif (screen == 2):
+    #         heroes = [14,6,1,2,3]
+    #     elif (screen == 3):
+    #         heroes = [7,13,10,1,6,12,3,8]
+    #     elif (screen == 4):
+    #         heroes = [5,8,10,2,13,15,4,6,14]
 
-    if (farmCicle == FARM_CICLE_MED):
-        logging.info("getting not so fastest heroes...")
-        if (screen == 1):
-            heroes = [4,6,7,10,11,15]
-        elif (screen == 2):
-            heroes = [8,7,12,4,15]
-        elif (screen == 3):
-            heroes = [9,15]
-        elif (screen == 4):
-            heroes = [3,11,12]
+    # if (farmCicle == FARM_CICLE_MED):
+    #     logging.info("getting not so fastest heroes...")
+    #     if (screen == 1):
+    #         heroes = [4,6,7,10,11,15]
+    #     elif (screen == 2):
+    #         heroes = [8,7,12,4,15]
+    #     elif (screen == 3):
+    #         heroes = [9,15]
+    #     elif (screen == 4):
+    #         heroes = [3,11,12]
 
-    elif (farmCicle == FARM_CICLE_MAX):
-        logging.info("getting slowest heroes...")
-        if (screen == 1):
-            heroes = [1,3,8]
-        elif (screen == 2):
-            heroes = [11,13,5,9,10]
-        elif (screen == 3):
-            heroes = [4,5,2,11,14]
-        elif (screen == 4):
-            heroes = [9,1,7]
+    # elif (farmCicle == FARM_CICLE_MAX):
+    #     logging.info("getting slowest heroes...")
+    #     if (screen == 1):
+    #         heroes = [1,3,8]
+    #     elif (screen == 2):
+    #         heroes = [11,13,5,9,10]
+    #     elif (screen == 3):
+    #         heroes = [4,5,2,11,14]
+    #     elif (screen == 4):
+    #         heroes = [9,1,7]
+
+    if (screen == 1):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    elif (screen == 2):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    elif (screen == 3):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    elif (screen == 4):
+        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
     
     heroes.sort(reverse=False)
     return heroes
@@ -253,7 +263,8 @@ def keepAlive():
         for screen in range(TOTAL_SCREENS):
             screen+=1
 
-            if (farmCicle == FARM_CICLE_MAX or farmCicle == FARM_CICLE_MED or farmCicle == FARM_CICLE_MIN):
+            # if (farmCicle == FARM_CICLE_MAX or farmCicle == FARM_CICLE_MED or farmCicle == FARM_CICLE_MIN):
+            if (farmCicle == FARM_CICLE_MAX):
                 logging.info("Starting farm in screen: {}".format(screen))
                 startFarm(screen)
             else:
@@ -261,6 +272,9 @@ def keepAlive():
                 goToMainMenu(screen)
                 goToTreasureHunt(screen)
 
+
+        handleSignIn()
+        handleNewMap()
 
     if (farmCicle == FARM_CICLE_MAX):
         farmCicle = 0
@@ -287,13 +301,12 @@ def handleNewMap():
     if(newMapBtns):
         for btn in newMapBtns:
             btnPos = pyautogui.center(btn)
+            pyautogui.click(btnPos)
+            sleep(WAIT_NEW_MAP)
+            goFullscreen()
             currentTime = datetime.datetime.now().strftime("%b-%d-%Y-%H-%M-%S")
             pyautogui.screenshot('imgs/screenshots/map-{}.png'.format(currentTime))
-            pyautogui.click(btnPos)
-            sleep(1)
-            # goFullscreen(1)
-            # sleep(5)
-            # quitFullscreen()
+            quitFullscreen()
 
     logging.info('Handling new map - done!')
 
@@ -353,6 +366,10 @@ def openSystemClock():
     mouse.click()
 
 
+def getItemList(type, confidence=0.94):
+    return list(pyautogui.locateAllOnScreen('imgs/{}.png'.format(type), confidence=confidence))
+
+
 # ---------------------------------------------------
 # Main
 # ---------------------------------------------------
@@ -363,9 +380,6 @@ def main():
 
     logging.info("Starting bot!!")
     keepAlive()
-
-    # goFullscreen(1)
-    # sleep(5)
-    # quitFullscreen()
+   
 
 main()
