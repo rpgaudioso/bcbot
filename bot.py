@@ -34,7 +34,7 @@ TOTAL_HEROS = 15
 TOTAL_SCREENS = 4
 
 currentPos = 0
-farmCicle = 0
+farmCicle = 1
 mapState = 'new' # new, normal, rock 
 
 
@@ -298,16 +298,13 @@ def keepAlive():
         for screen in range(TOTAL_SCREENS):
             screen+=1
 
-            # if (farmCicle == FARM_CICLE_MAX or farmCicle == FARM_CICLE_MED or farmCicle == FARM_CICLE_MIN):
+            goToMainMenu(screen)
+            goToTreasureHunt(screen)
+
             if (farmCicle == FARM_CICLE_MAX):
                 logging.info("Starting farm in screen: {}".format(screen))
                 startFarm(screen)
-            else:
-                logging.info("Keeping alive screen: {}".format(screen))
-                goToMainMenu(screen)
-                goToTreasureHunt(screen)
-
-
+   
         handleSignIn()
         handleNewMap()
 
