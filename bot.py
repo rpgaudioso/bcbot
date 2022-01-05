@@ -15,25 +15,29 @@ import duallog as log
 # FARM_CICLE_MAX = 12  # 48 min
 # FARM_CICLE_MED = 8   # 32 min
 # FARM_CICLE_MIN = 4   # 16 min
-KEEP_ALIVE_SEC = 300
-FARM_CICLE_MAX = 10 
+KEEP_ALIVE_SEC = 240
+FARM_CICLE_MAX = 2
 FARM_CICLE_MED = 9  
 FARM_CICLE_MIN = 5  
 WAIT_SEC = 1.5
 WAIT_SIGN_IN = 15
 WAIT_NEW_MAP = 2
 SCROLL_DELAY = .03
-MOVE_SEC = .1
+MOVE_SEC = .05
+WAIT_CHECK_ENERGY = .01
 HERO_STRIP_HEIGHT = 44
-HERO_STRIP_DIVIDER = 6
-HERO_FIRST_POS_Y = -260
+HERO_STRIP_DIVIDER = 8
+HERO_FIRST_POS_X = -68
+HERO_FIRST_POS_Y = -266
 HERO_TOTAL_HEIGHT = 255
 TOTAL_HEROS = 15
 TOTAL_SCREENS = 4
 
-activeHeroesQuatity = 0
 currentPos = 0
 farmCicle = 0
+mapState = 'new' # new, normal, rock 
+
+
 
 # TODO: think about maintenance time
 STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
@@ -85,8 +89,9 @@ def quitFullscreen():
 
 def openHeroesMenu():
     mouse.click()
-    sleep(WAIT_SEC*2)
+    sleep(WAIT_SEC)
     mouse.click()
+    sleep(WAIT_SEC*2)
 
 
 def scrolDownHeroesMenu():
@@ -101,31 +106,44 @@ def scrolDownHeroesMenu():
 def closeHeroesMenu(screen):
     findHeroesMenu(screen)
     mouse.move(40,-320,False, MOVE_SEC)
-    sleep(WAIT_SEC)
     mouse.click()
     sleep(WAIT_SEC)
     mouse.move(0,100,False, MOVE_SEC)
-    sleep(WAIT_SEC)
     mouse.click()
-    sleep(WAIT_SEC)
+
+def doClickAction():
+    if(mapState == 'normal'):
+        energy = checkEnergy()
+        logging.debug('Hero energy is: {}'.format(energy))
+        
+        # Click work
+        if(energy == 'high'):
+            logging.debug('click work')
+            btnOff = checkWorkBtnOff()
+            if(btnOff):
+                mouse.click()
+            sleep(WAIT_SEC)
+
+        # Click rest
+        elif(energy == 'low'):
+            mouse.move(40, 0, False)
+            # sleep(5)
+            logging.info('click rest')
+            btnOff = checkRestBtnOff()
+            if(btnOff):
+                mouse.click()
+            mouse.click()
+            sleep(WAIT_SEC)
+            mouse.move(-40, 0, False)
+
+    else:  
+        mouse.click()
+        sleep(WAIT_SEC)
 
 
-def prepareToWork():
-    mouse.move(-60, HERO_FIRST_POS_Y, False, MOVE_SEC)
-    sleep(WAIT_SEC)
-
-
-def doWorkAction():
-    mouse.click()
-    sleep(WAIT_SEC)
-    global activeHeroesQuatity
-    activeHeroesQuatity += 1 
-    logging.debug("A hero goes to work. Total working heroes: {}".format(activeHeroesQuatity))
 
 
 def putHeroesToRest(total=15):
-    global activeHeroesQuatity
-
     logging.info("Put heroes to rest...")
     mouse.move(-15, HERO_FIRST_POS_Y, False, MOVE_SEC)
     sleep(WAIT_SEC)
@@ -134,41 +152,43 @@ def putHeroesToRest(total=15):
         mouse.click()
         sleep(WAIT_SEC)
 
-    activeHeroesQuatity = 0
     mouse.move(15, -HERO_FIRST_POS_Y, False, MOVE_SEC)
     logging.info("Put heroes to rest - done!")
 
 
-
 def selectHero(desiredPos):
-    logging.debug("Select hero in desired position: {}".format(desiredPos))
+    # logging.debug("Select hero in desired position: {}".format(desiredPos))
     global currentPos
     
     delta = desiredPos - currentPos
 
-    logging.debug("-------------------- currentPos: {} --- desiredPos: {} --> Delta: {}".format(currentPos,desiredPos, delta))
+    # logging.debug("-------------------- currentPos: {} --- desiredPos: {} --> Delta: {}".format(currentPos,desiredPos, delta))
 
     for x in range(delta):
         if(currentPos<11):
-            logging.debug("+++++++++++++++++++++ scroll up")
+            # logging.debug("+++++++++++++++++++++ scroll up")
             for y in range(4):
                 mouse.wheel(-1)
                 sleep(SCROLL_DELAY)
+            if(currentPos==10):
+                mouse.move(0, 16, False, MOVE_SEC)
+                sleep(WAIT_SEC)
+
         elif(currentPos==11):
-            logging.debug("================================= adjust")
+            # logging.debug("================================= adjust")
             for y in range(4):
                 mouse.wheel(-1)
                 sleep(SCROLL_DELAY)
-            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT), False, MOVE_SEC )
-            mouse.move(0, 16, False)
+
+            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT), False, MOVE_SEC)
             sleep(WAIT_SEC)
+
         elif(currentPos>11):
-            logging.debug("+++++++++++++++++++++ move mouse")
-            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT), False, MOVE_SEC )
-            sleep(MOVE_SEC)
+            # logging.debug("+++++++++++++++++++++ move mouse")
+            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT), False, MOVE_SEC)
    
         currentPos += 1
-        logging.debug("currentPos: {}".format(currentPos))
+        # logging.debug("currentPos: {}".format(currentPos))
 
 
 def getHeroesPosToWork(screen):
@@ -220,6 +240,10 @@ def getHeroesPosToWork(screen):
 
 
 def startTeamWork(screen):
+
+    mouse.move(HERO_FIRST_POS_X, HERO_FIRST_POS_Y, False, MOVE_SEC)
+    sleep(WAIT_SEC)
+
     global currentPos
     currentPos = 1
 
@@ -228,25 +252,36 @@ def startTeamWork(screen):
 
     for position in heroesPosToWork:
         selectHero(position)
-        doWorkAction()
+        doClickAction()
+
 
 def goToMainMenu(screen):
     findHeroesMenu(screen)
     mouse.move(-290, -370, False, MOVE_SEC)
     mouse.click()
 
+
 def goToTreasureHunt(screen):
     findHeroesMenu(screen)
     mouse.move(0, -190, False, MOVE_SEC)
     mouse.click()
 
+
 def startFarm(screen):
+    checkMapState()
     findHeroesMenu(screen)
     openHeroesMenu()
-    putHeroesToRest(5)
-    prepareToWork()
+
+    if(mapState != 'normal'):
+        putHeroesToRest(5)
+
     startTeamWork(screen)
     closeHeroesMenu(screen)
+
+
+def checkMapState():
+    global mapState
+    mapState = 'normal'
 
 
 def keepAlive():
@@ -358,7 +393,48 @@ def findBtAndClick(name):
         return True
     return False
 
-    pyautogui.locateOnWindow()
+
+def checkEnergy():
+    # mousePos = pyautogui.displayMousePosition()
+    EMPTY_COLOR = (197, 139, 105)
+    energy = 'high'
+
+    mouseInitPos = pyautogui.position()
+
+    mouse.move(-25, 10, False, WAIT_CHECK_ENERGY)
+    mousePos = pyautogui.position()
+    if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, EMPTY_COLOR)):
+        energy = 'medium'
+        mouse.move(-45, 0, False, WAIT_CHECK_ENERGY)
+        mousePos = pyautogui.position()
+        if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, EMPTY_COLOR)):
+            energy = 'low'
+
+    mouse.move(mouseInitPos.x, mouseInitPos.y, True, WAIT_CHECK_ENERGY)
+    
+    return energy
+
+
+def checkWorkBtnOff():
+    WORK_BTN_OFF_COLOR = (87, 129, 91)
+    mousePos = pyautogui.position()
+    # pix = pyautogui.pixel(mousePos.x, mousePos.y)
+    # print("btn work: {}".format(pix))
+    if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, WORK_BTN_OFF_COLOR, tolerance=5)):
+        return True
+    else:
+        return False
+
+
+def checkRestBtnOff():
+    REST_BTN_OFF_COLOR = (166, 81, 17)
+    mousePos = pyautogui.position()
+    # pix = pyautogui.pixel(mousePos.x, mousePos.y)
+    # print("btn rest: {}".format(pix))
+    if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, REST_BTN_OFF_COLOR, tolerance=5)):
+        return True
+    else:
+        return False
 
 
 def openSystemClock():
@@ -380,6 +456,7 @@ def main():
 
     logging.info("Starting bot!!")
     keepAlive()
+    # startFarm(2)
    
 
 main()
