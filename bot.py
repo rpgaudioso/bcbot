@@ -11,14 +11,8 @@ import duallog as log
 # ---------------------------------------------------
 # Properties
 # ---------------------------------------------------
-# KEEP_ALIVE_SEC = 240 
-# FARM_CICLE_MAX = 12  # 48 min
-# FARM_CICLE_MED = 8   # 32 min
-# FARM_CICLE_MIN = 4   # 16 min
-KEEP_ALIVE_SEC = 240
-FARM_CICLE_MAX = 2
-FARM_CICLE_MED = 9  
-FARM_CICLE_MIN = 5  
+KEEP_CICLE_SEC = 240
+FARM_CICLE_LIMIT = 2
 WAIT_SEC = 1.5
 WAIT_SIGN_IN = 15
 WAIT_NEW_MAP = 2
@@ -28,29 +22,32 @@ WAIT_CHECK_ENERGY = .01
 HERO_STRIP_HEIGHT = 44
 HERO_STRIP_DIVIDER = 8
 HERO_FIRST_POS_X = -68
-HERO_FIRST_POS_Y = -266
+HERO_FIRST_POS_Y = -258
 HERO_TOTAL_HEIGHT = 255
 TOTAL_HEROS = 15
 TOTAL_SCREENS = 4
 
+MAP_STATE_STRIKERS = 0
+MAP_STATE_NORMALS   = 1
+MAP_STATE_ROCKERS  = 2
+
 currentPos = 0
 farmCicle = 1
-mapState = 'new' # new, normal, rock 
+mapState = MAP_STATE_NORMALS
 
 
 
 # TODO: think about maintenance time
-STOP_TIME = datetime.time( 6,0,0 ) # Time, without a date
-START_TIME = datetime.time( 7,30,0 ) # Time, without a date
-onOff = True
+MAINTENANCE = False
+MAINTENANCE_START_TIME = datetime.time(6, 0, 0)   # Time, without a date
+MAINTENANCE_END_TIME   = datetime.time(8, 30, 0)  # Time, without a date
+underMaintenance = False
 
 
 
 # ---------------------------------------------------
 # Methods
 # ---------------------------------------------------
-
-
 def screenSetup():
     for screen in range(4):
         win = pygetwindow.getWindowsWithTitle('Bombcrypto - Google Chrome')[screen]
@@ -91,7 +88,7 @@ def openHeroesMenu():
     mouse.click()
     sleep(WAIT_SEC)
     mouse.click()
-    sleep(WAIT_SEC*2)
+    sleep(WAIT_SEC*2.5)
 
 
 def scrolDownHeroesMenu():
@@ -112,7 +109,7 @@ def closeHeroesMenu(screen):
     mouse.click()
 
 def doClickAction():
-    if(mapState == 'normal'):
+    if(mapState == MAP_STATE_NORMALS):
         energy = checkEnergy()
         logging.debug('Hero energy is: {}'.format(energy))
         
@@ -121,8 +118,9 @@ def doClickAction():
             logging.debug('click work')
             btnOff = checkWorkBtnOff()
             if(btnOff):
+                print('work click')
                 mouse.click()
-            sleep(WAIT_SEC)
+                sleep(WAIT_SEC)
 
         # Click rest
         elif(energy == 'low'):
@@ -132,15 +130,12 @@ def doClickAction():
             btnOff = checkRestBtnOff()
             if(btnOff):
                 mouse.click()
-            mouse.click()
-            sleep(WAIT_SEC)
+                sleep(WAIT_SEC)
             mouse.move(-40, 0, False)
 
     else:  
         mouse.click()
         sleep(WAIT_SEC)
-
-
 
 
 def putHeroesToRest(total=15):
@@ -171,7 +166,7 @@ def selectHero(desiredPos):
                 mouse.wheel(-1)
                 sleep(SCROLL_DELAY)
             if(currentPos==10):
-                mouse.move(0, 16, False, MOVE_SEC)
+                mouse.move(0, 5, False, MOVE_SEC)
                 sleep(WAIT_SEC)
 
         elif(currentPos==11):
@@ -180,7 +175,7 @@ def selectHero(desiredPos):
                 mouse.wheel(-1)
                 sleep(SCROLL_DELAY)
 
-            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT), False, MOVE_SEC)
+            mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT + 2), False, MOVE_SEC)
             sleep(WAIT_SEC)
 
         elif(currentPos>11):
@@ -192,39 +187,6 @@ def selectHero(desiredPos):
 
 
 def getHeroesPosToWork(screen):
-    
-    # if (farmCicle == FARM_CICLE_MIN):
-    #     logging.info("getting fastest heroes...")
-    #     if (screen == 1):
-    #         heroes = [13,2,5,9,12,14]
-    #     elif (screen == 2):
-    #         heroes = [14,6,1,2,3]
-    #     elif (screen == 3):
-    #         heroes = [7,13,10,1,6,12,3,8]
-    #     elif (screen == 4):
-    #         heroes = [5,8,10,2,13,15,4,6,14]
-
-    # if (farmCicle == FARM_CICLE_MED):
-    #     logging.info("getting not so fastest heroes...")
-    #     if (screen == 1):
-    #         heroes = [4,6,7,10,11,15]
-    #     elif (screen == 2):
-    #         heroes = [8,7,12,4,15]
-    #     elif (screen == 3):
-    #         heroes = [9,15]
-    #     elif (screen == 4):
-    #         heroes = [3,11,12]
-
-    # elif (farmCicle == FARM_CICLE_MAX):
-    #     logging.info("getting slowest heroes...")
-    #     if (screen == 1):
-    #         heroes = [1,3,8]
-    #     elif (screen == 2):
-    #         heroes = [11,13,5,9,10]
-    #     elif (screen == 3):
-    #         heroes = [4,5,2,11,14]
-    #     elif (screen == 4):
-    #         heroes = [9,1,7]
 
     if (screen == 1):
         heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
@@ -272,7 +234,7 @@ def startFarm(screen):
     findHeroesMenu(screen)
     openHeroesMenu()
 
-    if(mapState != 'normal'):
+    if(mapState != MAP_STATE_NORMALS):
         putHeroesToRest(5)
 
     startTeamWork(screen)
@@ -281,49 +243,54 @@ def startFarm(screen):
 
 def checkMapState():
     global mapState
-    mapState = 'normal'
+    mapState = MAP_STATE_NORMALS
+    # TODO: Criar metodo de scan do mapa para definir o estado do mapa
 
 
-def keepAlive():
-    global onOff
+def checkIsUnderMaintenance():
+    global underMaintenance
+    if(MAINTENANCE):
+        if(datetime.datetime.now().time() > MAINTENANCE_START_TIME and datetime.datetime.now().time() < MAINTENANCE_END_TIME):
+            underMaintenance = True
+        else:
+            underMaintenance = False
+
+
+def keepCicle():
+    global underMaintenance
     global farmCicle
     farmCicle += 1
-    logging.info("Keep alive running in farm cicle: {}/{}".format(farmCicle, FARM_CICLE_MAX))
 
-    if(onOff):
-        
+    checkIsUnderMaintenance()
+
+    if(underMaintenance == False):
+        logging.info("Running in cicle: {}/{}".format(farmCicle, FARM_CICLE_LIMIT))
         handleSignIn()
-        handleNewMap()
         
         for screen in range(TOTAL_SCREENS):
-            screen+=1
+            screen += 1
+
+            if (farmCicle == FARM_CICLE_LIMIT):
+                logging.info("Starting farm in screen: {}".format(screen))
+                startFarm(screen)
 
             goToMainMenu(screen)
             goToTreasureHunt(screen)
-
-            if (farmCicle == FARM_CICLE_MAX):
-                logging.info("Starting farm in screen: {}".format(screen))
-                startFarm(screen)
    
         handleSignIn()
-        handleNewMap()
 
-    if (farmCicle == FARM_CICLE_MAX):
+    else:
+        logging.info("Server is under maintenance! Running in cicle: {}/{}".format(farmCicle, FARM_CICLE_LIMIT))
+
+
+    if (farmCicle == FARM_CICLE_LIMIT):
         farmCicle = 0
 
-    
-    # if(datetime.datetime.now().time() > STOP_TIME and datetime.datetime.now().time() < START_TIME):
-    #     onOff = False
-    # else:
-    #     onOff = True
-
-    logging.info('onOff: {}'.format(onOff))
-
-    nextTick = (datetime.datetime.now() + datetime.timedelta(seconds = KEEP_ALIVE_SEC)).strftime("%b %d %Y %H:%M:%S")
-    logging.info("Keep alive ending .. See you again at cicle {} in {}".format(farmCicle+1, nextTick))
+    nextTick = (datetime.datetime.now() + datetime.timedelta(seconds = KEEP_CICLE_SEC)).strftime("%b %d %Y %H:%M:%S")
+    logging.info("Keep cicle ending .. See you again at cicle {} in {}".format(farmCicle+1, nextTick))
     openSystemClock()
-    sleep(KEEP_ALIVE_SEC)
-    keepAlive()
+    sleep(KEEP_CICLE_SEC)
+    keepCicle()
 
 
 def handleNewMap():
@@ -413,22 +380,22 @@ def checkEnergy():
 
 
 def checkWorkBtnOff():
-    WORK_BTN_OFF_COLOR = (87, 129, 91)
+    WORK_BTN_OFF_COLOR = (91, 135, 95)
     mousePos = pyautogui.position()
-    # pix = pyautogui.pixel(mousePos.x, mousePos.y)
-    # print("btn work: {}".format(pix))
-    if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, WORK_BTN_OFF_COLOR, tolerance=5)):
+    pix = pyautogui.pixel(mousePos.x, mousePos.y)
+    print("btn work: {}".format(pix))
+    if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, WORK_BTN_OFF_COLOR, tolerance=4)):
         return True
     else:
         return False
 
 
 def checkRestBtnOff():
-    REST_BTN_OFF_COLOR = (166, 81, 17)
+    REST_BTN_OFF_COLOR = (173, 84, 18)
     mousePos = pyautogui.position()
-    # pix = pyautogui.pixel(mousePos.x, mousePos.y)
-    # print("btn rest: {}".format(pix))
-    if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, REST_BTN_OFF_COLOR, tolerance=5)):
+    pix = pyautogui.pixel(mousePos.x, mousePos.y)
+    print("btn rest: {}".format(pix))
+    if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, REST_BTN_OFF_COLOR, tolerance=4)):
         return True
     else:
         return False
@@ -452,8 +419,6 @@ def main():
     # screenSetup()
 
     logging.info("Starting bot!!")
-    keepAlive()
-    # startFarm(2)
-   
+    keepCicle()
 
 main()
