@@ -11,12 +11,13 @@ import duallog as log
 # ---------------------------------------------------
 # Properties
 # ---------------------------------------------------
-KEEP_CICLE_SEC = 240
+KEEP_CICLE_SEC = 360
 FARM_CICLE_LIMIT = 2
 WAIT_SEC = 1.5
 WAIT_SIGN_IN = 15
 WAIT_NEW_MAP = 2
 SCROLL_DELAY = .03
+SCROLL_ADJUST_DELAY = 1
 MOVE_SEC = .05
 WAIT_CHECK_ENERGY = .01
 HERO_STRIP_HEIGHT = 44
@@ -27,9 +28,9 @@ HERO_TOTAL_HEIGHT = 255
 TOTAL_HEROS = 15
 TOTAL_SCREENS = 4
 
-MAP_STATE_STRIKERS = 0
-MAP_STATE_NORMALS   = 1
-MAP_STATE_ROCKERS  = 2
+MAP_STATE_STRIKERS = 'strikers'
+MAP_STATE_NORMALS  = 'normals'
+MAP_STATE_ROCKERS  = 'rockers'
 
 currentPos = 0
 farmCicle = 1
@@ -115,39 +116,34 @@ def doClickAction():
         
         # Click work
         if(energy == 'high'):
-            logging.debug('click work')
             btnOff = checkWorkBtnOff()
             if(btnOff):
-                print('work click')
                 mouse.click()
+                logging.info('click work')
                 sleep(WAIT_SEC)
 
         # Click rest
-        elif(energy == 'low'):
-            mouse.move(40, 0, False)
-            # sleep(5)
-            logging.info('click rest')
-            btnOff = checkRestBtnOff()
-            if(btnOff):
-                mouse.click()
-                sleep(WAIT_SEC)
-            mouse.move(-40, 0, False)
+        # elif(energy == 'low'):
+        #     mouse.move(40, 0, False)
+        #     btnOff = checkRestBtnOff()
+        #     if(btnOff):
+        #         mouse.click()
+        #         logging.info('click rest')
+        #         sleep(WAIT_SEC)
+        #     mouse.move(-40, 0, False)
 
     else:  
         mouse.click()
+        logging.info('click work')
         sleep(WAIT_SEC)
 
 
-def putHeroesToRest(total=15):
+def putHeroesToRest():
     logging.info("Put heroes to rest...")
-    mouse.move(-15, HERO_FIRST_POS_Y, False, MOVE_SEC)
+    mouse.move(-15, HERO_FIRST_POS_Y - 25, False, MOVE_SEC)
+    mouse.click()
     sleep(WAIT_SEC)
-
-    for x in range(total):
-        mouse.click()
-        sleep(WAIT_SEC)
-
-    mouse.move(15, -HERO_FIRST_POS_Y, False, MOVE_SEC)
+    mouse.move(15, -HERO_FIRST_POS_Y + 25, False, MOVE_SEC)
     logging.info("Put heroes to rest - done!")
 
 
@@ -167,7 +163,7 @@ def selectHero(desiredPos):
                 sleep(SCROLL_DELAY)
             if(currentPos==10):
                 mouse.move(0, 5, False, MOVE_SEC)
-                sleep(WAIT_SEC)
+                sleep(SCROLL_ADJUST_DELAY)
 
         elif(currentPos==11):
             # logging.debug("================================= adjust")
@@ -176,7 +172,7 @@ def selectHero(desiredPos):
                 sleep(SCROLL_DELAY)
 
             mouse.move(0, ((HERO_STRIP_DIVIDER/2) + HERO_STRIP_HEIGHT + 2), False, MOVE_SEC)
-            sleep(WAIT_SEC)
+            sleep(SCROLL_ADJUST_DELAY)
 
         elif(currentPos>11):
             # logging.debug("+++++++++++++++++++++ move mouse")
@@ -188,15 +184,28 @@ def selectHero(desiredPos):
 
 def getHeroesPosToWork(screen):
 
-    if (screen == 1):
+    if(mapState == MAP_STATE_STRIKERS):
+        if (screen == 1):
+            heroes = [2,13]
+        elif (screen == 2):
+            heroes = [1,2,6,14]
+        elif (screen == 3):
+            heroes = [7,10,13]
+        elif (screen == 4):
+            heroes = [5,7]
+    elif(mapState == MAP_STATE_ROCKERS):
+        if (screen == 1):
+            heroes = [8,5,6,10,11]
+        elif (screen == 2):
+            heroes = [15,4,13,12,11]
+        elif (screen == 3):
+            heroes = [15,2,3,8,11,14]
+        elif (screen == 4):
+            heroes = [1,4,6,11,13]
+    else:
         heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-    elif (screen == 2):
-        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-    elif (screen == 3):
-        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-    elif (screen == 4):
-        heroes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-    
+
+
     heroes.sort(reverse=False)
     return heroes
 
@@ -230,21 +239,36 @@ def goToTreasureHunt(screen):
 
 
 def startFarm(screen):
-    checkMapState()
+    checkMapState(screen)
     findHeroesMenu(screen)
     openHeroesMenu()
 
     if(mapState != MAP_STATE_NORMALS):
-        putHeroesToRest(5)
+        putHeroesToRest()
 
     startTeamWork(screen)
     closeHeroesMenu(screen)
 
 
-def checkMapState():
+def checkMapState(screen):
+    findHeroesMenu(screen)
     global mapState
-    mapState = MAP_STATE_NORMALS
-    # TODO: Criar metodo de scan do mapa para definir o estado do mapa
+    mouse.move(0, -70, False,.1)
+    mouse.click()
+    goFullscreen()
+    rocks = getRocksQtt()
+    chests = getChestsQtt()
+
+    if(rocks > 100 and chests > 20):
+        mapState = MAP_STATE_STRIKERS
+    elif(chests < 2 and rocks > 10):
+        mapState = MAP_STATE_ROCKERS
+    else:
+        mapState = MAP_STATE_NORMALS
+
+    quitFullscreen()
+
+    logging.info("Map state is: {}".format(mapState))
 
 
 def checkIsUnderMaintenance():
@@ -270,9 +294,9 @@ def keepCicle():
         for screen in range(TOTAL_SCREENS):
             screen += 1
 
-            if (farmCicle == FARM_CICLE_LIMIT):
-                logging.info("Starting farm in screen: {}".format(screen))
-                startFarm(screen)
+            # if (farmCicle == FARM_CICLE_LIMIT):
+            logging.info("Starting farm in screen: {}".format(screen))
+            startFarm(screen)
 
             goToMainMenu(screen)
             goToTreasureHunt(screen)
@@ -382,8 +406,8 @@ def checkEnergy():
 def checkWorkBtnOff():
     WORK_BTN_OFF_COLOR = (91, 135, 95)
     mousePos = pyautogui.position()
-    pix = pyautogui.pixel(mousePos.x, mousePos.y)
-    print("btn work: {}".format(pix))
+    # pix = pyautogui.pixel(mousePos.x, mousePos.y)
+    # print("btn work: {}".format(pix))
     if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, WORK_BTN_OFF_COLOR, tolerance=4)):
         return True
     else:
@@ -393,8 +417,8 @@ def checkWorkBtnOff():
 def checkRestBtnOff():
     REST_BTN_OFF_COLOR = (173, 84, 18)
     mousePos = pyautogui.position()
-    pix = pyautogui.pixel(mousePos.x, mousePos.y)
-    print("btn rest: {}".format(pix))
+    # pix = pyautogui.pixel(mousePos.x, mousePos.y)
+    # print("btn rest: {}".format(pix))
     if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, REST_BTN_OFF_COLOR, tolerance=4)):
         return True
     else:
@@ -409,6 +433,38 @@ def openSystemClock():
 def getItemList(type, confidence=0.94):
     return list(pyautogui.locateAllOnScreen('imgs/{}.png'.format(type), confidence=confidence))
 
+
+
+def getObjList(type, confidence=0.92):
+    return list(pyautogui.locateAllOnScreen('imgs/items/new/{}.png'.format(type), confidence=confidence))
+
+
+def getRocksQtt():
+    rocks = getObjList('rock1')
+    if (rocks == []):
+        rocks = getObjList('rock2')
+    # print('rocks: {}'.format(len(rocks)))
+    return len(rocks)
+
+
+def getChestsQtt():
+    woods =  getObjList('wood')
+    if (woods == []):
+        woods = getObjList('wood2')
+    # print('woods: {}'.format(len(woods)))
+
+    irons =  getObjList('iron')
+    # print('irons: {}'.format(len(irons)))
+
+    golds =  getObjList('gold')
+    if (golds == []):
+        golds = getObjList('gold2')
+    # print('golds: {}'.format(len(golds)))
+
+    crystals =  getObjList('crystal', confidence=0.84)
+    # print('crystals: {}'.format(len(crystals)))
+
+    return len(woods)+len(irons)+len(golds)+len(crystals)
 
 # ---------------------------------------------------
 # Main

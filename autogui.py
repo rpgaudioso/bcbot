@@ -5,40 +5,41 @@ from time import sleep
 # ---------------------------------------------------
 # Methods
 # ---------------------------------------------------
-def getObjList(type, confidence=0.94):
-    return list(pyautogui.locateAllOnScreen('imgs/items/{}.png'.format(type), confidence=confidence))
+def getObjList(type, confidence=0.92):
+    return list(pyautogui.locateAllOnScreen('imgs/items/new/{}.png'.format(type), confidence=confidence))
+
+
+def getRocksQtt():
+    rocks = getObjList('rock1')
+    if (rocks == []):
+        rocks = getObjList('rock2')
+    # print('rocks: {}'.format(len(rocks)))
+    return len(rocks)
+
+def getChestsQtt():
+    woods =  getObjList('wood')
+    if (woods == []):
+        woods = getObjList('wood2')
+    # print('woods: {}'.format(len(woods)))
+
+    irons =  getObjList('iron')
+    # print('irons: {}'.format(len(irons)))
+
+    golds =  getObjList('gold')
+    if (golds == []):
+        golds = getObjList('gold2')
+    # print('golds: {}'.format(len(golds)))
+
+    crystals =  getObjList('crystal', confidence=0.84)
+    # print('crystals: {}'.format(len(crystals)))
+
+    return len(woods)+len(irons)+len(golds)+len(crystals)
 
 sleep(6)
+print(getRocksQtt())
+print(getChestsQtt())
 
-walls = getObjList('wall')
-if (walls == []):
-    walls = getObjList('wall2')
-print('walls: {}'.format(len(walls)))
 
-rocks = getObjList('rock')
-if (rocks == []):
-    rocks = getObjList('rock2')
-print('rocks: {}'.format(len(rocks)))
-
-woods =  getObjList('wood', 0.9)
-if (woods == []):
-    woods = getObjList('wood2', 0.92)
-print('woods: {}'.format(len(woods)))
-
-irons =  getObjList('iron')
-if (irons == []):
-    irons = getObjList('iron2')
-print('irons: {}'.format(len(irons)))
-
-golds =  getObjList('gold')
-if (golds == []):
-    golds = getObjList('gold2')
-print('golds: {}'.format(len(golds)))
-
-crystals =  getObjList('crystal')
-if (crystals == []):
-    crystals = getObjList('crystal2')
-print('crystals: {}'.format(len(crystals)))
 
 # jails =  getObjList('jail')
 # print('jails: {}'.format(len(jails)))
