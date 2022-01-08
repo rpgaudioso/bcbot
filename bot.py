@@ -16,7 +16,7 @@ FARM_CICLE_LIMIT = 2
 WAIT_SEC = 1.5
 WAIT_SIGN_IN = 15
 WAIT_NEW_MAP = 2
-WAIT_LOADING = 0.1
+WAIT_LOADING = 2 #0.01
 SCROLL_DELAY = .03
 SCROLL_ADJUST_DELAY = 1
 MOVE_SEC = .05
@@ -119,7 +119,13 @@ def doClickAction():
         if(energy == 'high'):
             btnOff = checkWorkBtnOff()
             if(btnOff):
+                # mousePos = pyautogui.position()
+                # pix = pyautogui.pixel(mousePos.x, mousePos.y)
+                # print(pix)
                 mouse.click()
+                # sleep(.1)
+                # pix = pyautogui.pixel(mousePos.x, mousePos.y)
+                # print(pix)
                 logging.info('click work')
                 checkActionLoaded()
 
@@ -253,44 +259,37 @@ def startFarm(screen):
 
 
 def checkHeroesListLoaded():
-    # 237 215 186 -> hero bar background
     HERO_LIST_LOADING_COLOR = (115, 91, 83)
 
-    sleep(WAIT_LOADING)
     mouse.move(0, -100, False)
     mousePos = pyautogui.position()
-
     loading = True
     while(loading == True):
-        # print('check load')
+        print('hero list check load')
         if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, HERO_LIST_LOADING_COLOR, tolerance=2)):
-            # print('is loading')
+            print('is loading')
             sleep(WAIT_LOADING)
         else:
-            # print('loading complete')
+            print('loading complete')
             loading = False
 
     mouse.move(0, 100, False)
 
 
 def checkActionLoaded():
-    HERO_BAR_BG_COLOR = (243, 220, 191)
-
-    sleep(WAIT_LOADING)
-    mousePos = pyautogui.position()
-    pix = pyautogui.pixel(mousePos.x, mousePos.y)
-    print(pix)
-    loading = True
-    while(loading == True):
-        print('check load')
-        pix = pyautogui.pixel(mousePos.x, mousePos.y)
-        print(pix)
-        if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, HERO_BAR_BG_COLOR, tolerance=2)):
-            print('is loading')
-            sleep(WAIT_LOADING)
-        else:
-            print('loading complete')
-            loading = False
+    return
+    # HERO_BAR_BG_COLOR = (247, 224, 194)
+    # sleep(.05)
+    # mousePos = pyautogui.position()
+    # loading = True
+    # while(loading == True):
+    #     # print('check load')
+    #     if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, HERO_BAR_BG_COLOR, tolerance=2)):
+    #         # print('is loading')
+    #         sleep(WAIT_LOADING)
+    #     else:
+    #         # print('loading complete')
+    #         loading = False
 
 
 def checkMapState(screen):
@@ -521,5 +520,6 @@ def main():
 
     logging.info("Starting bot!!")
     keepCicle()
+    # startFarm(3)
 
 main()
