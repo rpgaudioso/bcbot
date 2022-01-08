@@ -6,13 +6,15 @@ from time import sleep
 # Methods
 # ---------------------------------------------------
 def getObjList(type, confidence=0.92):
-    return list(pyautogui.locateAllOnScreen('imgs/items/new/{}.png'.format(type), confidence=confidence))
+    return list(pyautogui.locateAllOnScreen('imgs/items/{}.png'.format(type), confidence=confidence))
 
 
 def getRocksQtt():
     rocks = getObjList('rock1')
     if (rocks == []):
         rocks = getObjList('rock2')
+        if (rocks == []):
+            rocks = getObjList('rock3')
     # print('rocks: {}'.format(len(rocks)))
     return len(rocks)
 

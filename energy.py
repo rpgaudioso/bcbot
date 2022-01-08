@@ -34,3 +34,6 @@ def checkEnergy():
 # checkEnergy()
 
 mousePos = pyautogui.displayMousePosition()
+
+# 115 91 83 -> hero list when loading
+# 237 215 186 -> hero bar background

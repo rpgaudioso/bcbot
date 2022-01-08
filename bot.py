@@ -16,6 +16,7 @@ FARM_CICLE_LIMIT = 2
 WAIT_SEC = 1.5
 WAIT_SIGN_IN = 15
 WAIT_NEW_MAP = 2
+WAIT_LOADING = 0.1
 SCROLL_DELAY = .03
 SCROLL_ADJUST_DELAY = 1
 MOVE_SEC = .05
@@ -89,7 +90,7 @@ def openHeroesMenu():
     mouse.click()
     sleep(WAIT_SEC)
     mouse.click()
-    sleep(WAIT_SEC*2.5)
+    sleep(WAIT_SEC)
 
 
 def scrolDownHeroesMenu():
@@ -120,22 +121,22 @@ def doClickAction():
             if(btnOff):
                 mouse.click()
                 logging.info('click work')
-                sleep(WAIT_SEC)
+                checkActionLoaded()
 
         # Click rest
-        # elif(energy == 'low'):
-        #     mouse.move(40, 0, False)
-        #     btnOff = checkRestBtnOff()
-        #     if(btnOff):
-        #         mouse.click()
-        #         logging.info('click rest')
-        #         sleep(WAIT_SEC)
-        #     mouse.move(-40, 0, False)
+        elif(energy == 'low'):
+            mouse.move(40, 0, False)
+            btnOff = checkRestBtnOff()
+            if(btnOff):
+                mouse.click()
+                logging.info('click rest')
+                checkActionLoaded()
+            mouse.move(-40, 0, False)
 
     else:  
         mouse.click()
         logging.info('click work')
-        sleep(WAIT_SEC)
+        checkActionLoaded()
 
 
 def putHeroesToRest():
@@ -186,13 +187,13 @@ def getHeroesPosToWork(screen):
 
     if(mapState == MAP_STATE_STRIKERS):
         if (screen == 1):
-            heroes = [2,13]
+            heroes = [2,13,15,9]
         elif (screen == 2):
             heroes = [1,2,6,14]
         elif (screen == 3):
-            heroes = [7,10,13]
+            heroes = [7,10,13,12]
         elif (screen == 4):
-            heroes = [5,7]
+            heroes = [5,7,15,9]
     elif(mapState == MAP_STATE_ROCKERS):
         if (screen == 1):
             heroes = [8,5,6,10,11]
@@ -246,8 +247,50 @@ def startFarm(screen):
     if(mapState != MAP_STATE_NORMALS):
         putHeroesToRest()
 
+    checkHeroesListLoaded()
     startTeamWork(screen)
     closeHeroesMenu(screen)
+
+
+def checkHeroesListLoaded():
+    # 237 215 186 -> hero bar background
+    HERO_LIST_LOADING_COLOR = (115, 91, 83)
+
+    sleep(WAIT_LOADING)
+    mouse.move(0, -100, False)
+    mousePos = pyautogui.position()
+
+    loading = True
+    while(loading == True):
+        # print('check load')
+        if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, HERO_LIST_LOADING_COLOR, tolerance=2)):
+            # print('is loading')
+            sleep(WAIT_LOADING)
+        else:
+            # print('loading complete')
+            loading = False
+
+    mouse.move(0, 100, False)
+
+
+def checkActionLoaded():
+    HERO_BAR_BG_COLOR = (243, 220, 191)
+
+    sleep(WAIT_LOADING)
+    mousePos = pyautogui.position()
+    pix = pyautogui.pixel(mousePos.x, mousePos.y)
+    print(pix)
+    loading = True
+    while(loading == True):
+        print('check load')
+        pix = pyautogui.pixel(mousePos.x, mousePos.y)
+        print(pix)
+        if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, HERO_BAR_BG_COLOR, tolerance=2)):
+            print('is loading')
+            sleep(WAIT_LOADING)
+        else:
+            print('loading complete')
+            loading = False
 
 
 def checkMapState(screen):
@@ -261,8 +304,8 @@ def checkMapState(screen):
 
     if(rocks > 100 and chests > 20):
         mapState = MAP_STATE_STRIKERS
-    elif(chests < 2 and rocks > 10):
-        mapState = MAP_STATE_ROCKERS
+    # elif(rocks > 5 and rocks < 10):
+    #     mapState = MAP_STATE_ROCKERS // contar os baus com a vida zerada no rockers
     else:
         mapState = MAP_STATE_NORMALS
 
@@ -393,7 +436,7 @@ def checkEnergy():
     mousePos = pyautogui.position()
     if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, EMPTY_COLOR)):
         energy = 'medium'
-        mouse.move(-45, 0, False, WAIT_CHECK_ENERGY)
+        mouse.move(-50, 0, False, WAIT_CHECK_ENERGY)
         mousePos = pyautogui.position()
         if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, EMPTY_COLOR)):
             energy = 'low'
@@ -436,13 +479,15 @@ def getItemList(type, confidence=0.94):
 
 
 def getObjList(type, confidence=0.92):
-    return list(pyautogui.locateAllOnScreen('imgs/items/new/{}.png'.format(type), confidence=confidence))
+    return list(pyautogui.locateAllOnScreen('imgs/items/{}.png'.format(type), confidence=confidence))
 
 
 def getRocksQtt():
     rocks = getObjList('rock1')
     if (rocks == []):
         rocks = getObjList('rock2')
+        if (rocks == []):
+            rocks = getObjList('rock3')
     # print('rocks: {}'.format(len(rocks)))
     return len(rocks)
 
