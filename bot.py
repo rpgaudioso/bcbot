@@ -7,6 +7,10 @@ import pyautogui
 import datetime
 import config as cf
 import duallog as log
+import time
+import yaml
+import sys
+
 
 # ---------------------------------------------------
 # Properties
@@ -245,19 +249,6 @@ def goToTreasureHunt(screen):
     mouse.click()
 
 
-def startFarm(screen):
-    checkMapState(screen)
-    findHeroesMenu(screen)
-    openHeroesMenu()
-
-    if(mapState != MAP_STATE_NORMALS):
-        putHeroesToRest()
-
-    checkHeroesListLoaded()
-    startTeamWork(screen)
-    closeHeroesMenu(screen)
-
-
 def checkHeroesListLoaded():
     HERO_LIST_LOADING_COLOR = (115, 91, 83)
 
@@ -265,12 +256,12 @@ def checkHeroesListLoaded():
     mousePos = pyautogui.position()
     loading = True
     while(loading == True):
-        print('hero list check load')
+        # print('hero list check load')
         if(pyautogui.pixelMatchesColor(mousePos.x, mousePos.y, HERO_LIST_LOADING_COLOR, tolerance=2)):
-            print('is loading')
+            # print('is loading')
             sleep(WAIT_LOADING)
         else:
-            print('loading complete')
+            # print('loading complete')
             loading = False
 
     mouse.move(0, 100, False)
@@ -301,16 +292,16 @@ def checkMapState(screen):
     rocks = getRocksQtt()
     chests = getChestsQtt()
 
-    if(rocks > 100 and chests > 20):
+    if(rocks > 90 and chests > 20):
         mapState = MAP_STATE_STRIKERS
-    # elif(rocks > 5 and rocks < 10):
-    #     mapState = MAP_STATE_ROCKERS // contar os baus com a vida zerada no rockers
+    # elif(chests < 5 and rocks > 10):
+    #     mapState = MAP_STATE_ROCKERS
     else:
         mapState = MAP_STATE_NORMALS
 
     quitFullscreen()
 
-    logging.info("Map state is: {}".format(mapState))
+    logging.warning("Map state is: {}".format(mapState))
 
 
 def checkIsUnderMaintenance():
@@ -322,41 +313,31 @@ def checkIsUnderMaintenance():
             underMaintenance = False
 
 
-def keepCicle():
-    global underMaintenance
-    global farmCicle
-    farmCicle += 1
+# def keepCicle():
+#     global underMaintenance
+#     global farmCicle
+#     farmCicle += 1
 
-    checkIsUnderMaintenance()
+#     checkIsUnderMaintenance()
 
-    if(underMaintenance == False):
-        logging.info("Running in cicle: {}/{}".format(farmCicle, FARM_CICLE_LIMIT))
-        handleSignIn()
-        
-        for screen in range(TOTAL_SCREENS):
-            screen += 1
+#     if(underMaintenance == False):
+#         logging.info("Running in cicle: {}/{}".format(farmCicle, FARM_CICLE_LIMIT))
+#         handleSignIn()
+#         farm()
+#         handleSignIn()
 
-            # if (farmCicle == FARM_CICLE_LIMIT):
-            logging.info("Starting farm in screen: {}".format(screen))
-            startFarm(screen)
-
-            goToMainMenu(screen)
-            goToTreasureHunt(screen)
-   
-        handleSignIn()
-
-    else:
-        logging.info("Server is under maintenance! Running in cicle: {}/{}".format(farmCicle, FARM_CICLE_LIMIT))
+#     else:
+#         logging.info("Server is under maintenance! Running in cicle: {}/{}".format(farmCicle, FARM_CICLE_LIMIT))
 
 
-    if (farmCicle == FARM_CICLE_LIMIT):
-        farmCicle = 0
+#     if (farmCicle == FARM_CICLE_LIMIT):
+#         farmCicle = 0
 
-    nextTick = (datetime.datetime.now() + datetime.timedelta(seconds = KEEP_CICLE_SEC)).strftime("%b %d %Y %H:%M:%S")
-    logging.info("Keep cicle ending .. See you again at cicle {} in {}".format(farmCicle+1, nextTick))
-    openSystemClock()
-    sleep(KEEP_CICLE_SEC)
-    keepCicle()
+#     nextTick = (datetime.datetime.now() + datetime.timedelta(seconds = KEEP_CICLE_SEC)).strftime("%b %d %Y %H:%M:%S")
+#     logging.info("Keep cicle ending .. See you again at cicle {} in {}".format(farmCicle+1, nextTick))
+#     openSystemClock()
+#     sleep(KEEP_CICLE_SEC)
+#     keepCicle()
 
 
 def handleNewMap():
@@ -477,49 +458,122 @@ def getItemList(type, confidence=0.94):
 
 
 
-def getObjList(type, confidence=0.92):
+def getObjList(type, confidence=0.8):
     return list(pyautogui.locateAllOnScreen('imgs/items/{}.png'.format(type), confidence=confidence))
 
 
 def getRocksQtt():
-    rocks = getObjList('rock1')
-    if (rocks == []):
-        rocks = getObjList('rock2')
-        if (rocks == []):
-            rocks = getObjList('rock3')
+    rocks = getObjList('rock-n')
+    # if (rocks == []):
+    #     rocks = getObjList('rock2')
+    #     if (rocks == []):
+    #         rocks = getObjList('rock3')
     # print('rocks: {}'.format(len(rocks)))
     return len(rocks)
 
 
 def getChestsQtt():
-    woods =  getObjList('wood')
-    if (woods == []):
-        woods = getObjList('wood2')
-    # print('woods: {}'.format(len(woods)))
-
-    irons =  getObjList('iron')
-    # print('irons: {}'.format(len(irons)))
-
-    golds =  getObjList('gold')
-    if (golds == []):
-        golds = getObjList('gold2')
-    # print('golds: {}'.format(len(golds)))
-
-    crystals =  getObjList('crystal', confidence=0.84)
-    # print('crystals: {}'.format(len(crystals)))
+    woods =  getObjList('wood-n', confidence=0.94)
+    irons =  getObjList('iron-n')
+    golds =  getObjList('gold-n')
+    crystals =  getObjList('crystal-n', confidence=0.84)
 
     return len(woods)+len(irons)+len(golds)+len(crystals)
+
+
+def farm():
+    for screen in range(TOTAL_SCREENS):
+        screen += 1
+
+        logging.info("Starting farm in screen: {}".format(screen))
+
+        checkMapState(screen)
+        findHeroesMenu(screen)
+        openHeroesMenu()
+
+        if(mapState != MAP_STATE_NORMALS):
+            putHeroesToRest()
+
+        checkHeroesListLoaded()
+        startTeamWork(screen)
+        closeHeroesMenu(screen)
+
+        logging.info("Farm in screen {} done!".format(screen))
+
+def farmSpecial():
+    for screen in range(TOTAL_SCREENS):
+        screen += 1
+
+        logging.info("Starting farm special in screen: {}".format(screen))
+
+        checkMapState(screen)
+   
+        if(mapState != MAP_STATE_NORMALS):
+            findHeroesMenu(screen)
+            openHeroesMenu()
+            putHeroesToRest()
+            checkHeroesListLoaded()
+            startTeamWork(screen)
+            closeHeroesMenu(screen)
+
+        logging.info("Farm special in screen {} done!".format(screen))
+
+def keepAlive():
+    for screen in range(TOTAL_SCREENS):
+        screen += 1
+
+        logging.info("KeepAlive in screen: {}".format(screen))
+
+        goToMainMenu(screen)
+        goToTreasureHunt(screen)
+
 
 # ---------------------------------------------------
 # Main
 # ---------------------------------------------------
 def main():
-    cf.init()
+
+    # cf.init()
+    # Load config file.
+    stream = open("config.yaml", 'r')
+    c = yaml.safe_load(stream)
+    t = c['time_intervals']
+
     log.init()
+
     # screenSetup()
 
-    logging.info("Starting bot!!")
-    keepCicle()
-    # startFarm(3)
+    last = {
+        'signin' : 0,
+        'farm' : 0,
+        'keep_alive' : 0,
+        'farm_special' : 0,
+    }
 
-main()
+    while True:
+        now = time.time()
+
+        if now - last['signin'] >( t['signin'] * 60):
+            last['signin'] = now
+            handleSignIn()
+
+        if now - last['farm'] > (t['farm'] * 60):
+            last['farm'] = now
+            farm()
+
+        if now - last['farm_special'] > (t['farm_special'] * 60):
+            last['farm_special'] = now
+            farmSpecial()
+            
+        if now - last['keep_alive'] > (t['keep_alive'] * 60):
+            last['keep_alive'] = now
+            keepAlive()
+
+        
+        sys.stdout.flush()
+
+        time.sleep(1)
+
+
+if __name__ == '__main__':
+    main()
